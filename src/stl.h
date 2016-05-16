@@ -8,9 +8,7 @@
 #include <forward_list>
 #include <list>
 #include <map>
-#include <queue>
 #include <set>
-#include <stack>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -28,9 +26,7 @@ TRACE_ITERABLE(std::deque);
 TRACE_ITERABLE(std::forward_list);
 TRACE_ITERABLE(std::list);
 TRACE_ITERABLE(std::map);
-TRACE_ITERABLE(std::queue);
 TRACE_ITERABLE(std::set);
-TRACE_ITERABLE(std::stack);
 TRACE_ITERABLE(std::unordered_map);
 TRACE_ITERABLE(std::unordered_set);
 TRACE_ITERABLE(std::vector);
@@ -83,6 +79,7 @@ class TupleCountDown_
     template<typename F>
     static void trace(const T& p, F tracer)
     {
+        // This isn't infinite recursion because of the specialization below.
         Next::template trace<F>(p, tracer);
         Traceable<Ei>::template trace<F>(std::get<i - 1>(p), tracer);
     }
