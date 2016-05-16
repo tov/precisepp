@@ -15,7 +15,6 @@ class Allocator;
 template <typename T, typename = Traceable<T>>
 class traced_ptr
 {
-private:
     friend class Allocator<T>;
     friend class Traceable<traced_ptr<T>>;
 
@@ -24,7 +23,7 @@ private:
         template <typename... Args>
         impl(Args&&... args)
                 : data_{std::forward<Args>(args)...}
-                , refcount_{0}
+                , refcount_{1}
                 , mark_{false}
         { }
 
@@ -33,7 +32,57 @@ private:
         mutable bool   mark_;
     };
 
-    impl* pimpl_ = nullptr;
+    impl* pimpl_;
+
+    void inc_()
+    {
+        if (pimpl_ != nullptr) ++pimpl_->refcount_;
+    }
+
+    void dec_()
+    {
+        if (pimpl_ != nullptr) --pimpl_->refcount_;
+    }
+
+public:
+    traced_ptr() : pimpl_{nullptr}
+    { }
+
+    traced_ptr(impl* pimpl) : pimpl_{pimpl}
+    {
+        inc_();
+    }
+
+    traced_ptr(const traced_ptr& other)
+    {
+        pimpl_ = other.pimpl_;
+        inc_();
+    }
+
+    traced_ptr(traced_ptr&& other)
+    {
+        std::swap(pimpl_, other.pimpl_);
+    }
+
+    traced_ptr& operator=(const traced_ptr& other)
+    {
+        dec_();
+        pimpl_ = other.pimpl_;
+        inc_();
+        return *this;
+    }
+
+    traced_ptr& operator=(traced_ptr&& other)
+    {
+        std::swap(pimpl_, other.pimpl_);
+        return *this;
+    }
+
+    ~traced_ptr()
+    {
+        dec_();
+    }
+
 };
 
 template <typename T>
@@ -76,7 +125,6 @@ private:
     { }
 
     std::unordered_set<typename traced_ptr<T>::impl*> objects_;
-    std::unordered_set<typename traced_ptr<T>::impl*> roots_;
 };
 
 } // end namespace gc
