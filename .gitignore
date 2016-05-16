@@ -1,0 +1,5 @@
+# for CMake
+build/
+
+# Ignore CLion stuff
+.idea/
