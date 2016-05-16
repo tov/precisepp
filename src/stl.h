@@ -42,7 +42,7 @@ struct Traceable<std::array<E, N>>
     static void trace(const std::array<E, N>& a, F tracer)
     {
         for (size_t i = 0; i < N; ++i)
-            trace_<E, F>(a[i], tracer);
+            ::gc::internal::trace_(a[i], tracer);
     }
 };
 
@@ -56,8 +56,8 @@ struct Traceable<std::pair<K, V>>
     template<typename F>
     static void trace(const std::pair<K, V>& p, F tracer)
     {
-        trace_<K, F>(p.first, tracer);
-        trace_<V, F>(p.second, tracer);
+        ::gc::internal::trace_(p.first, tracer);
+        ::gc::internal::trace_(p.second, tracer);
     }
 };
 
@@ -81,7 +81,7 @@ class TupleCountDown_
     {
         // This isn't infinite recursion because of the specialization below.
         Next::template trace<F>(p, tracer);
-        Traceable<Ei>::template trace<F>(std::get<i - 1>(p), tracer);
+        ::gc::internal::trace_(std::get<i - 1>(p), tracer);
     }
 };
 

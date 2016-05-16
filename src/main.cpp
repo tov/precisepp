@@ -13,7 +13,7 @@ int main()
 {
     auto v{ std::make_tuple(4, i(5), vector<gc::traced_ptr<int>>{i(1), i(2), i(3) }) };
 
-    gc::trace_(v, [](auto p){
+    gc::internal::trace_(v, [](auto p){
         std::cout << "hi\n";
     });
 
