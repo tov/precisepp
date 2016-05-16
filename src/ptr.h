@@ -23,9 +23,20 @@ class traced_ptr
         template <typename... Args>
         impl(Args&&... args)
                 : data_{std::forward<Args>(args)...}
-                , refcount_{1}
+                , refcount_{0}
                 , mark_{false}
-        { }
+        {
+            ::gc::internal::trace_(data_, [](auto sub_pimpl) {
+                if (sub_pimpl != nullptr) --sub_pimpl->ref_count_;
+            });
+        }
+
+        ~impl()
+        {
+            ::gc::internal::trace_(data_, [](auto sub_pimpl) {
+                if (sub_pimpl != nullptr) ++sub_pimpl->ref_count_;
+            });
+        }
 
         T              data_;
         mutable size_t refcount_;
@@ -104,6 +115,7 @@ traced_ptr<T> make_traced(Args&&... args)
 template <typename T>
 class Allocator
 {
+    using impl = typename traced_ptr<T>::impl;
 public:
     static Allocator& instance() noexcept
     {
@@ -114,9 +126,11 @@ public:
     template <typename... Args>
     traced_ptr<T> make_traced(Args&&... args)
     {
-        traced_ptr<T> result;
-        result.pimpl_ = new typename traced_ptr<T>::impl(std::forward<Args>(args)...);
-        objects_.insert(result.pimpl_);
+        auto pimpl = new impl{std::forward<Args>(args)...};
+        traced_ptr<T> result{pimpl};
+
+        objects_.insert(pimpl);
+
         return result;
     }
 
