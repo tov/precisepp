@@ -4,7 +4,9 @@ project(precisepp CXX)
 set(SOURCE_FILES
         src/main.cpp
         src/gc.cpp
-        src/gc.h)
+        src/gc.h
+        src/tracing.h
+        src/stl.h)
 
 add_executable(precisepp ${SOURCE_FILES})
 set_property(TARGET precisepp PROPERTY CXX_STANDARD 14)
