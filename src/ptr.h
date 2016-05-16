@@ -17,17 +17,20 @@ class traced_ptr
 {
 private:
     friend class Allocator<T>;
+    friend class Traceable<traced_ptr<T>>;
 
     struct impl
     {
         template <typename... Args>
         impl(Args&&... args)
                 : data_{std::forward<Args>(args)...}
+                , refcount_{0}
                 , mark_{false}
         { }
 
-        T            data_;
-        mutable bool mark_;
+        T              data_;
+        mutable size_t refcount_;
+        mutable bool   mark_;
     };
 
     impl* pimpl_ = nullptr;
@@ -38,7 +41,7 @@ DEFINE_TRACEABLE(traced_ptr<T>)
 {
     DEFINE_TRACE(const traced_ptr<T>& p)
     {
-        tracer(p);
+        tracer(p.pimpl_);
     }
 };
 
