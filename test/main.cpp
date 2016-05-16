@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "gc.h"
+#include "../src/gc.h"
 
 using namespace std;
 
