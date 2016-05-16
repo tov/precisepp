@@ -37,10 +37,9 @@ private:
 };
 
 template <typename T>
-struct Traceable<traced_ptr<T>>
+DEFINE_TRACEABLE(traced_ptr<T>)
 {
-    template <typename F>
-    static void trace(const traced_ptr<T>& p, F tracer)
+    DEFINE_TRACE(const traced_ptr<T>& p)
     {
         tracer(p);
     }
