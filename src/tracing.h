@@ -25,44 +25,54 @@ void trace_(T&& object, F tracer)
 
 } // end namespace internal
 
-#define TRACE_NO_PTRS(T) \
+#define DEFINE_TRACE(...) \
+    template <typename S__, typename F__>\
+    friend void ::gc::internal::trace_(S__&&, F__);\
+    template <typename tracer_t>\
+    static void trace(__VA_ARGS__, tracer_t tracer)
+
+#define DEFINE_TRACEABLE(...) \
+    class ::gc::Traceable<__VA_ARGS__>
+
+#define TRACE(...) \
+    ::gc::internal::trace_(__VA_ARGS__, tracer)
+
+#define DEFINE_TRACEABLE_POD(...) \
     template <>\
-    struct ::gc::Traceable<T>\
+    DEFINE_TRACEABLE(__VA_ARGS__) \
     {\
-        template <typename F>\
-        static void trace(T, F) {}\
+        DEFINE_TRACE(__VA_ARGS__) {}\
     }
 
-#define TRACE_ITERABLE(C) \
+#define DEFINE_TRACEABLE_CONTAINER(C) \
     template <typename... E> \
-    struct ::gc::Traceable<C<E...>>\
+    DEFINE_TRACEABLE(C<E...>)\
     {\
-        template <typename F>\
-        static void trace(const C<E...>& v, F tracer)\
+        DEFINE_TRACE(const C<E...>& v)\
         {\
             for (const auto& e : v) \
                 ::gc::internal::trace_(e, tracer);\
         }\
     }
 
-TRACE_NO_PTRS(bool);
-TRACE_NO_PTRS(unsigned char);
-TRACE_NO_PTRS(signed char);
-TRACE_NO_PTRS(char);
-TRACE_NO_PTRS(wchar_t);
-TRACE_NO_PTRS(char16_t);
-TRACE_NO_PTRS(char32_t);
-TRACE_NO_PTRS(short);
-TRACE_NO_PTRS(unsigned short);
-TRACE_NO_PTRS(int);
-TRACE_NO_PTRS(unsigned int);
-TRACE_NO_PTRS(long);
-TRACE_NO_PTRS(unsigned long);
-TRACE_NO_PTRS(long long);
-TRACE_NO_PTRS(unsigned long long);
-TRACE_NO_PTRS(float);
-TRACE_NO_PTRS(double);
-TRACE_NO_PTRS(long double);
+DEFINE_TRACEABLE_POD(bool);
+DEFINE_TRACEABLE_POD(unsigned char);
+DEFINE_TRACEABLE_POD(signed char);
+DEFINE_TRACEABLE_POD(char);
+DEFINE_TRACEABLE_POD(wchar_t);
+DEFINE_TRACEABLE_POD(char16_t);
+DEFINE_TRACEABLE_POD(char32_t);
+DEFINE_TRACEABLE_POD(short);
+DEFINE_TRACEABLE_POD(unsigned short);
+DEFINE_TRACEABLE_POD(int);
+DEFINE_TRACEABLE_POD(unsigned int);
+DEFINE_TRACEABLE_POD(long);
+DEFINE_TRACEABLE_POD(unsigned long);
+DEFINE_TRACEABLE_POD(long long);
+DEFINE_TRACEABLE_POD(unsigned long long);
+DEFINE_TRACEABLE_POD(float);
+DEFINE_TRACEABLE_POD(double);
+DEFINE_TRACEABLE_POD(long double);
 
 } // end namespace gc
 

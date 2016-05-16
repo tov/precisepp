@@ -22,27 +22,26 @@ namespace gc {
 // Containers (except std::array)
 //
 
-TRACE_ITERABLE(std::deque);
-TRACE_ITERABLE(std::forward_list);
-TRACE_ITERABLE(std::list);
-TRACE_ITERABLE(std::map);
-TRACE_ITERABLE(std::set);
-TRACE_ITERABLE(std::unordered_map);
-TRACE_ITERABLE(std::unordered_set);
-TRACE_ITERABLE(std::vector);
+DEFINE_TRACEABLE_CONTAINER(std::deque);
+DEFINE_TRACEABLE_CONTAINER(std::forward_list);
+DEFINE_TRACEABLE_CONTAINER(std::list);
+DEFINE_TRACEABLE_CONTAINER(std::map);
+DEFINE_TRACEABLE_CONTAINER(std::set);
+DEFINE_TRACEABLE_CONTAINER(std::unordered_map);
+DEFINE_TRACEABLE_CONTAINER(std::unordered_set);
+DEFINE_TRACEABLE_CONTAINER(std::vector);
 
 //
 // std::array
 //
 
 template<typename E, size_t N>
-struct Traceable<std::array<E, N>>
+DEFINE_TRACEABLE(std::array<E, N>)
 {
-    template<typename F>
-    static void trace(const std::array<E, N>& a, F tracer)
+    DEFINE_TRACE(const std::array<E, N>& a)
     {
         for (size_t i = 0; i < N; ++i)
-            ::gc::internal::trace_(a[i], tracer);
+            TRACE(a[i]);
     }
 };
 
@@ -51,13 +50,12 @@ struct Traceable<std::array<E, N>>
 //
 
 template<typename K, typename V>
-struct Traceable<std::pair<K, V>>
+DEFINE_TRACEABLE(std::pair<K, V>)
 {
-    template<typename F>
-    static void trace(const std::pair<K, V>& p, F tracer)
+    DEFINE_TRACE(const std::pair<K, V>& p)
     {
-        ::gc::internal::trace_(p.first, tracer);
-        ::gc::internal::trace_(p.second, tracer);
+        TRACE(p.first);
+        TRACE(p.second);
     }
 };
 
@@ -73,15 +71,13 @@ class TupleCountDown_
     friend class Traceable<T>;
     friend class TupleCountDown_<i + 1, T>;
 
-    using Ei   = std::tuple_element_t<i - 1, T>;
     using Next = TupleCountDown_<i - 1, T>;
 
-    template<typename F>
-    static void trace(const T& p, F tracer)
+    DEFINE_TRACE(const T&p)
     {
         // This isn't infinite recursion because of the specialization below.
-        Next::template trace<F>(p, tracer);
-        ::gc::internal::trace_(std::get<i - 1>(p), tracer);
+        Next::template trace<tracer_t>(p, tracer);
+        TRACE(std::get<i - 1>(p));
     }
 };
 
@@ -89,23 +85,20 @@ template<typename T>
 class TupleCountDown_<0, T>
 {
     friend class TupleCountDown_<1, T>;
-
-    template<typename F>
-    static void trace(const T& p, F tracer) { }
+    DEFINE_TRACE(const T&) { }
 };
 
 } // end namespace internal
 
 template<typename... E>
-struct Traceable<std::tuple<E...>>
+DEFINE_TRACEABLE(std::tuple<E...>)
 {
     using T     = std::tuple<E...>;
     using Start = internal::TupleCountDown_<std::tuple_size<T>::value, T>;
 
-    template<typename F>
-    static void trace(const T& p, F tracer)
+    DEFINE_TRACE(const T& p)
     {
-        Start::template trace<F>(p, tracer);
+        Start::template trace<tracer_t>(p, tracer);
     }
 };
 
