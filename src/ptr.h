@@ -22,7 +22,7 @@ public:
 
     template <typename... Args>
     traced_ptr(Args&&... args)
-            : ptr_{allocator().emplace_(std::forward<Args>(args)...)}
+            : ptr_{allocator().allocate_(std::forward<Args>(args)...)}
     {
         inc_();
     }

@@ -15,24 +15,6 @@ class traced_ptr;
 template<typename T>
 class GC_allocator
 {
-public:
-    static constexpr size_t initial_capacity = 1024;
-
-    // Right now this being public isn't useful.
-    GC_allocator(size_t capacity = initial_capacity)
-            : capacity_{capacity}
-            , objects_{allocator_.allocate(capacity)}
-            , used_(capacity, false)
-            , marked_(capacity, false)
-    { }
-
-    static GC_allocator& instance() noexcept
-    {
-        static GC_allocator instance_;
-        return instance_;
-    }
-
-private:
     friend class traced_ptr<T>;
 
     std::allocator<T> allocator_;
@@ -44,8 +26,23 @@ private:
     std::vector<bool> used_;
     std::vector<bool> marked_;
 
+    static constexpr size_t initial_capacity = 1024;
+
+    GC_allocator()
+            : capacity_{initial_capacity}
+            , objects_{allocator_.allocate(capacity_)}
+            , used_(capacity_, false)
+            , marked_(capacity_, false)
+    { }
+
+    static GC_allocator& instance() noexcept
+    {
+        static GC_allocator instance_;
+        return instance_;
+    }
+
     template<typename... Args>
-    T* emplace_(Args&& ... args)
+    T* allocate_(Args&& ... args)
     {
         for (size_t i = 0; i < capacity_; ++i) {
             if (used_[i]) continue;
@@ -58,46 +55,37 @@ private:
         assert(false);
     }
 
-    static void destroy_(T* ptr)
+    void destroy_(T* ptr)
     {
         if (ptr != nullptr) {
-            auto inst  = instance();
-            auto index = ptr - inst.objects_;
+            auto index = ptr - objects_;
 
-            if (inst.used_[index]) {
-                inst.allocator_.destroy(ptr);
-                inst.used_[index] = false;
+            if (used_[index]) {
+                allocator_.destroy(ptr);
+                used_[index] = false;
             }
         }
     }
 
-    static void mark_(T* ptr)
+    void mark_(T* ptr)
     {
         if (ptr != nullptr)
-            instance().marked_[ptr - instance().objects_] = true;
-    }
-
-    static void clear_mark_(T* ptr)
-    {
-        if (ptr != nullptr)
-            instance().marked_[ptr - instance().objects_] = false;
-    }
-
-    static void inc_(T* ptr)
-    {
-        if (ptr != nullptr)
-            instance().roots_.inc(ptr);
-    }
-
-    static void dec_(T* ptr)
-    {
-        if (ptr != nullptr)
-            instance().roots_.dec(ptr);
+            marked_[ptr - instance().objects_] = true;
     }
 
     void clear_marks_()
     {
         marked_.assign(capacity_, false);
+    }
+
+    void inc_(T* ptr)
+    {
+        if (ptr != nullptr) roots_.inc(ptr);
+    }
+
+    void dec_(T* ptr)
+    {
+        if (ptr != nullptr) roots_.dec(ptr);
     }
 
 //    void mark_()
