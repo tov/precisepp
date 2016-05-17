@@ -13,6 +13,9 @@ namespace gc
 template <typename T>
 class Allocator;
 
+namespace internal
+{
+
 template <typename T>
 struct traced_box_
 {
@@ -39,6 +42,8 @@ struct traced_box_
     mutable bool   mark_;
 };
 
+} // end namespace internal
+
 template <typename T, typename = Traceable<T>>
 class traced_ptr
 {
@@ -46,9 +51,9 @@ class traced_ptr
     friend class Traceable<traced_ptr<T>>;
 
     template<typename S>
-    friend class traced_box_;
+    friend class internal::traced_box_;
 
-    traced_box_<T>* pimpl_;
+    internal::traced_box_<T>* pimpl_;
 
     void inc_()
     {
@@ -67,7 +72,7 @@ public:
     traced_ptr() : pimpl_{nullptr}
     { }
 
-    traced_ptr(traced_box_<T>* pimpl) : pimpl_{pimpl}
+    traced_ptr(internal::traced_box_<T>* pimpl) : pimpl_{pimpl}
     {
         inc_();
     }
@@ -123,7 +128,7 @@ traced_ptr<T> make_traced(Args&&... args)
 template <typename T>
 class Allocator
 {
-    using impl = traced_box_<T>;
+    using impl = internal::traced_box_<T>;
 public:
     static Allocator& instance() noexcept
     {
@@ -146,7 +151,7 @@ private:
     Allocator()
     { }
 
-    std::unordered_set<traced_box_<T>*> objects_;
+    std::unordered_set<internal::traced_box_<T>*> objects_;
 };
 
 } // end namespace gc
