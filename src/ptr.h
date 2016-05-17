@@ -8,122 +8,108 @@
 #include <unordered_set>
 #include <cassert>
 #include <memory>
+#include <vector>
 
 namespace gc
 {
 
 template <typename T>
-class Allocator;
-
-namespace internal
-{
-
-template <typename T>
-struct traced_box_
-{
-    template <typename... Args>
-    traced_box_(Args&&... args)
-            : data_{std::forward<Args>(args)...}
-            , refcount_{0}
-            , mark_{false}
-    {
-        ::gc::internal::trace_(data_, [](auto ptr) {
-            ptr.dec_();
-        });
-    }
-
-    ~traced_box_()
-    {
-        ::gc::internal::trace_(data_, [](auto ptr) {
-            ptr.inc_();
-        });
-    }
-
-    T              data_;
-    mutable size_t refcount_;
-    mutable bool   mark_;
-};
-
-} // end namespace internal
+class GC_allocator;
 
 template <typename T, typename = Traceable<T>>
 class traced_ptr
 {
-    friend class Allocator<T>;
+    friend class GC_allocator<T>;
     friend class Traceable<traced_ptr<T>>;
 
-    template<typename S>
-    friend class internal::traced_box_;
+    T* ptr_;
 
-    internal::traced_box_<T>* pimpl_;
-
-    void inc_()
+    traced_ptr(T* ptr) : ptr_{ptr}
     {
-        if (pimpl_ != nullptr) ++pimpl_->refcount_;
+//        inc_();
     }
 
-    void dec_()
-    {
-        if (pimpl_ != nullptr) {
-            assert(pimpl_->refcount_ > 0);
-            --pimpl_->refcount_;
-        }
-    }
-
-    void clear_()
-    {
-        if (pimpl_ != nullptr) pimpl_->mark_ = false;
-    }
-
-    void mark_recursively_()
-    {
-        if (pimpl_ != nullptr && !pimpl_->mark_) {
-            pimpl_->mark_ = true;
-            ::gc::internal::trace_(pimpl_->data_, [](auto ptr) {
-                ptr->mark_recursively_();
-            });
-        }
-    }
+//    void inc_()
+//    {
+//        if (ptr_ != nullptr) ++ptr_->refcount_;
+//    }
+//
+//    void dec_()
+//    {
+//        if (ptr_ != nullptr) {
+//            assert(ptr_->refcount_ > 0);
+//            --ptr_->refcount_;
+//        }
+//    }
+//
+//    void clear_()
+//    {
+//        if (ptr_ != nullptr) ptr_->mark_ = false;
+//    }
+//
+//    void mark_recursively_()
+//    {
+//        if (ptr_ != nullptr && !ptr_->mark_) {
+//            ptr_->mark_ = true;
+//            ::gc::internal::trace_(ptr_->data_, [](auto ptr) {
+//                ptr->mark_recursively_();
+//            });
+//        }
+//    }
 
 public:
-    traced_ptr() : pimpl_{nullptr}
+    traced_ptr() : ptr_{nullptr}
     { }
-
-    traced_ptr(internal::traced_box_<T>* pimpl) : pimpl_{pimpl}
-    {
-        inc_();
-    }
 
     traced_ptr(const traced_ptr& other)
     {
-        pimpl_ = other.pimpl_;
-        inc_();
+        ptr_ = other.ptr_;
+//        inc_();
     }
 
     traced_ptr(traced_ptr&& other)
     {
-        std::swap(pimpl_, other.pimpl_);
+        std::swap(ptr_, other.ptr_);
     }
 
     traced_ptr& operator=(const traced_ptr& other)
     {
-        dec_();
-        pimpl_ = other.pimpl_;
-        inc_();
+//        dec_();
+        ptr_ = other.ptr_;
+//        inc_();
         return *this;
     }
 
     traced_ptr& operator=(traced_ptr&& other)
     {
-        std::swap(pimpl_, other.pimpl_);
+        std::swap(ptr_, other.ptr_);
         return *this;
     }
 
     ~traced_ptr()
     {
-        dec_();
+//        dec_();
     }
 
+    T& operator*()
+    {
+        return *ptr_;
+    }
+
+    const T& operator*() const
+    {
+        return *ptr_;
+    }
+
+    T* operator->()
+    {
+        return ptr_;
+    }
+
+    const T* operator->() const
+    {
+        return ptr_;
+    }
 };
 
 template <typename T>
@@ -138,34 +124,43 @@ DEFINE_TRACEABLE(traced_ptr<T>)
 template <typename T, typename... Args>
 traced_ptr<T> make_traced(Args&&... args)
 {
-    return Allocator<T>::instance()
+    return GC_allocator<T>::instance()
             .template make_traced<Args...>(std::forward<Args>(args)...);
 }
 
 template <typename T>
-class Allocator
+class GC_allocator
 {
-    using impl = internal::traced_box_<T>;
 public:
-    static Allocator& instance() noexcept
+    static GC_allocator& instance() noexcept
     {
-        static Allocator instance_;
+        static GC_allocator instance_;
         return instance_;
     }
 
     template <typename... Args>
     traced_ptr<T> make_traced(Args&&... args)
     {
-        auto pimpl = new impl{std::forward<Args>(args)...};
-        traced_ptr<T> result{pimpl};
+        for (size_t i = 0; i < capacity_; ++i)
+        {
+            if (used_[i]) continue;
+            allocator_.construct(objects_ + i, std::forward<Args>(args)...);
+            used_[i] = true;
+            return traced_ptr<T>(objects_ + i);
+        }
 
-        objects_.insert(pimpl);
-
-        return result;
+        // out of memory (for now)
+        assert(false);
     }
 
 private:
-    Allocator()
+    static constexpr size_t initial_capacity = 1024;
+
+    GC_allocator(size_t capacity = initial_capacity)
+        : capacity_{capacity}
+        , objects_{allocator_.allocate(capacity)}
+        , used_(capacity, false)
+        , marked_(capacity, false)
     { }
 
 //    void clear_marks_()
@@ -180,9 +175,14 @@ private:
 //            ::gc::internal::trace_(ptr->data_, &mark_tracer_);
 //    }
 
+    std::allocator<T> allocator_;
 
-    count_map<internal::traced_box_<T>*> roots_;
-    std::unordered_set<internal::traced_box_<T>*> objects_;
+    T* objects_;
+    size_t capacity_;
+
+    count_map<T*> roots_;
+    std::vector<bool> used_;
+    std::vector<bool> marked_;
 };
 
 } // end namespace gc

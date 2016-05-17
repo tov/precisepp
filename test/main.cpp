@@ -23,11 +23,12 @@ gc::traced_ptr<int> i(int n)
 
 int main()
 {
-    auto w{ t(std::make_tuple(4, t(5), t(vector<gc::traced_ptr<int>>{t(1)}))) };
+    auto v{ vector<gc::traced_ptr<int>>{t(1)} };
+    auto w{ std::make_tuple(4, t(5), t(v)) };
 
-//    gc::internal::trace_(v, [](auto p){
-//        std::cout << "hi\n";
-//    });
+    gc::internal::trace_(w, [](auto p){
+        std::cout << "hi\n";
+    });
 
     return 0;
 }

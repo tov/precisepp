@@ -1,2 +1,1 @@
  - Actually do tracing garbage collection.
- - Allocate in arenas instead of using new/delete for each object allocated.
