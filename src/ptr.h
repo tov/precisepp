@@ -5,6 +5,7 @@
 
 #include <utility>
 #include <unordered_set>
+#include <cassert>
 
 namespace gc
 {
@@ -26,16 +27,12 @@ class traced_ptr
                 , refcount_{0}
                 , mark_{false}
         {
-            ::gc::internal::trace_(data_, [](auto sub_pimpl) {
-                if (sub_pimpl != nullptr) --sub_pimpl->ref_count_;
-            });
+            ::gc::internal::trace_(data_, &traced_ptr::dec_);
         }
 
         ~impl()
         {
-            ::gc::internal::trace_(data_, [](auto sub_pimpl) {
-                if (sub_pimpl != nullptr) ++sub_pimpl->ref_count_;
-            });
+            ::gc::internal::trace_(data_, &traced_ptr::inc_);
         }
 
         T              data_;
@@ -52,7 +49,10 @@ class traced_ptr
 
     void dec_()
     {
-        if (pimpl_ != nullptr) --pimpl_->refcount_;
+        if (pimpl_ != nullptr) {
+            assert(pimpl_->refcount_ > 0);
+            --pimpl_->refcount_;
+        }
     }
 
 public:
@@ -101,7 +101,7 @@ DEFINE_TRACEABLE(traced_ptr<T>)
 {
     DEFINE_TRACE(const traced_ptr<T>& p)
     {
-        tracer(p.pimpl_);
+        tracer(p);
     }
 };
 
