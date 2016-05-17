@@ -35,7 +35,7 @@ class GC_allocator
             , used_(initial_capacity, false)
             , marked_(initial_capacity, false)
     {
-        Allocator_manager::instance().register_action(&sweep);
+        Allocator_manager::instance().register_action(&sweep_);
     }
 
     static GC_allocator& instance() noexcept
@@ -70,11 +70,6 @@ class GC_allocator
         }
     }
 
-    void clear_marks_()
-    {
-        marked_.assign(capacity_, false);
-    }
-
     void inc_(T* ptr)
     {
         if (ptr != nullptr) roots_.inc(ptr);
@@ -99,15 +94,19 @@ class GC_allocator
         }
     }
 
-    static void sweep() {
+    static void sweep_() {
+        instance().do_sweep_();
+    }
 
+    void do_sweep_() {
+        // TODO
     }
 
     void collect() {
-        clear_marks_();
-
         for (const auto& p : roots_)
             mark_recursively_(p->first);
+
+        Allocator_manager::instance().sweep();
     }
 
 //    void mark_()
