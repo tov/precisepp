@@ -78,6 +78,8 @@ public:
     }
 
 private:
+    friend class Traceable<traced_ptr>;
+
     T* ptr_;
 
     static GC_allocator<T>& allocator()
@@ -110,7 +112,7 @@ DEFINE_TRACEABLE(traced_ptr<T>)
 {
     DEFINE_TRACE(const traced_ptr<T>& p)
     {
-        tracer(p);
+        tracer(p.ptr_);
     }
 };
 
