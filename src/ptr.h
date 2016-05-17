@@ -13,34 +13,42 @@ namespace gc
 template <typename T>
 class Allocator;
 
+template <typename T>
+struct traced_box_
+{
+    template <typename... Args>
+    traced_box_(Args&&... args)
+            : data_{std::forward<Args>(args)...}
+            , refcount_{0}
+            , mark_{false}
+    {
+        ::gc::internal::trace_(data_, [](auto ptr) {
+            ptr.dec_();
+        });
+    }
+
+    ~traced_box_()
+    {
+        ::gc::internal::trace_(data_, [](auto ptr) {
+            ptr.inc_();
+        });
+    }
+
+    T              data_;
+    mutable size_t refcount_;
+    mutable bool   mark_;
+};
+
 template <typename T, typename = Traceable<T>>
 class traced_ptr
 {
     friend class Allocator<T>;
     friend class Traceable<traced_ptr<T>>;
 
-    struct impl
-    {
-        template <typename... Args>
-        impl(Args&&... args)
-                : data_{std::forward<Args>(args)...}
-                , refcount_{0}
-                , mark_{false}
-        {
-            ::gc::internal::trace_(data_, &traced_ptr::dec_);
-        }
+    template<typename S>
+    friend class traced_box_;
 
-        ~impl()
-        {
-            ::gc::internal::trace_(data_, &traced_ptr::inc_);
-        }
-
-        T              data_;
-        mutable size_t refcount_;
-        mutable bool   mark_;
-    };
-
-    impl* pimpl_;
+    traced_box_<T>* pimpl_;
 
     void inc_()
     {
@@ -59,7 +67,7 @@ public:
     traced_ptr() : pimpl_{nullptr}
     { }
 
-    traced_ptr(impl* pimpl) : pimpl_{pimpl}
+    traced_ptr(traced_box_<T>* pimpl) : pimpl_{pimpl}
     {
         inc_();
     }
@@ -115,7 +123,7 @@ traced_ptr<T> make_traced(Args&&... args)
 template <typename T>
 class Allocator
 {
-    using impl = typename traced_ptr<T>::impl;
+    using impl = traced_box_<T>;
 public:
     static Allocator& instance() noexcept
     {
@@ -138,7 +146,7 @@ private:
     Allocator()
     { }
 
-    std::unordered_set<typename traced_ptr<T>::impl*> objects_;
+    std::unordered_set<traced_box_<T>*> objects_;
 };
 
 } // end namespace gc
