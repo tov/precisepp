@@ -68,6 +68,21 @@ class traced_ptr
         }
     }
 
+    void clear_()
+    {
+        if (pimpl_ != nullptr) pimpl_->mark_ = false;
+    }
+
+    void mark_recursively_()
+    {
+        if (pimpl_ != nullptr && !pimpl_->mark_) {
+            pimpl_->mark_ = true;
+            ::gc::internal::trace_(pimpl_->data_, [](auto ptr) {
+                ptr->mark_recursively_();
+            });
+        }
+    }
+
 public:
     traced_ptr() : pimpl_{nullptr}
     { }
@@ -150,6 +165,19 @@ public:
 private:
     Allocator()
     { }
+
+//    void clear_marks_()
+//    {
+//        for (auto* ptr : objects_)
+//            ptr->clear_();
+//    }
+
+//    void mark_()
+//    {
+//        for (auto* ptr : objects_)
+//            ::gc::internal::trace_(ptr->data_, &mark_tracer_);
+//    }
+
 
     std::unordered_set<internal::traced_box_<T>*> objects_;
 };
