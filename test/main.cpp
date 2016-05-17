@@ -16,19 +16,11 @@ gc::traced_ptr<T> tr(const T& val)
     return gc::make_traced<T>(val);
 }
 
-gc::traced_ptr<int> i(int n)
-{
-    return t(n);
-}
-
 int main()
 {
-    auto v{ vector<gc::traced_ptr<int>>{t(1)} };
-    auto w{ std::make_tuple(4, t(5), t(v)) };
+    auto v = gc::make_traced<vector<gc::traced_ptr<int>>>(5, t(8));
 
-    gc::internal::trace_(w, [](auto p){
+    gc::internal::trace_(v, [](auto p){
         std::cout << "hi\n";
     });
-
-    return 0;
 }
