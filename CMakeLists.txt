@@ -5,7 +5,8 @@ set(GC_HEADERS
         src/gc.h
         src/ptr.h
         src/tracing.h
-        src/stl.h)
+        src/stl.h
+        src/util/count_map.h)
 
 set(GC_LIB
         src/gc.cpp

@@ -2,10 +2,12 @@
 
 #include "tracing.h"
 #include "stl.h"
+#include "util/count_map.h"
 
 #include <utility>
 #include <unordered_set>
 #include <cassert>
+#include <memory>
 
 namespace gc
 {
@@ -179,6 +181,7 @@ private:
 //    }
 
 
+    count_map<internal::traced_box_<T>*> roots_;
     std::unordered_set<internal::traced_box_<T>*> objects_;
 };
 
