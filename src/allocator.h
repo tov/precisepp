@@ -1,6 +1,7 @@
 #pragma once
 
 #include "util/count_map.h"
+#include "manager.h"
 
 #include <cassert>
 #include <memory>
@@ -33,7 +34,9 @@ class GC_allocator
             , objects_{allocator_.allocate(initial_capacity)}
             , used_(initial_capacity, false)
             , marked_(initial_capacity, false)
-    { }
+    {
+        Allocator_manager::instance().register_action(&sweep);
+    }
 
     static GC_allocator& instance() noexcept
     {
@@ -67,12 +70,6 @@ class GC_allocator
         }
     }
 
-    void mark_(T* ptr)
-    {
-        if (ptr != nullptr)
-            marked_[ptr - instance().objects_] = true;
-    }
-
     void clear_marks_()
     {
         marked_.assign(capacity_, false);
@@ -86,6 +83,31 @@ class GC_allocator
     void dec_(T* ptr)
     {
         if (ptr != nullptr) roots_.dec(ptr);
+    }
+
+    static void mark_recursively_(T* ptr) {
+        if (ptr != nullptr) {
+            auto inst  = instance();
+            auto index = ptr - inst.objects_;
+
+            if (!inst.marked_[index]) {
+                inst.marked_[index] = true;
+                ::gc::internal::trace_(*ptr, [](auto sub_ptr) {
+                    mark_recursively_(sub_ptr);
+                });
+            }
+        }
+    }
+
+    static void sweep() {
+
+    }
+
+    void collect() {
+        clear_marks_();
+
+        for (const auto& p : roots_)
+            mark_recursively_(p->first);
     }
 
 //    void mark_()

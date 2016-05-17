@@ -13,8 +13,7 @@ public:
     using container_type  = Container;
     using value_type      = typename Container::value_type;
     using size_type       = typename Container::size_type;
-    using reference       = typename Container::reference;
-    using const_reference = typename Container::const_reference;
+    using iterator        = typename Container::const_iterator;
 
     using count_type      = T;
 
@@ -65,6 +64,28 @@ public:
         return new_value;
     }
 
+    iterator begin() const
+    {
+        return container_.begin();
+    }
+
+    iterator end() const
+    {
+        return container_.begin();
+    }
+
 private:
     container_type container_;
+};
+
+template <typename Key, typename T, typename Container>
+auto begin(const count_map<Key, T, Container>& cm)
+{
+    return cm.begin();
+};
+
+template <typename Key, typename T, typename Container>
+auto end(const count_map<Key, T, Container>& cm)
+{
+    return cm.end();
 };

@@ -6,6 +6,9 @@ set(GC_HEADERS
         src/ptr.h
         src/tracing.h
         src/stl.h
+        src/allocator.h
+        src/manager.h
+        src/manager.cpp
         src/util/count_map.h)
 
 set(GC_LIB
