@@ -30,9 +30,9 @@ class GC_allocator
 
     GC_allocator()
             : capacity_{initial_capacity}
-            , objects_{allocator_.allocate(capacity_)}
-            , used_(capacity_, false)
-            , marked_(capacity_, false)
+            , objects_{allocator_.allocate(initial_capacity)}
+            , used_(initial_capacity, false)
+            , marked_(initial_capacity, false)
     { }
 
     static GC_allocator& instance() noexcept

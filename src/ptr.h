@@ -78,9 +78,6 @@ public:
     }
 
 private:
-    friend class GC_allocator<T>;
-    friend class Traceable<traced_ptr<T>>;
-
     T* ptr_;
 
     static GC_allocator<T>& allocator()
@@ -97,6 +94,15 @@ private:
     {
         allocator().dec_(ptr_);
     }
+
+    void mark_recursively_()
+    {
+        allocator().mark_(ptr_);
+        ::gc::internal::trace_(*ptr_, [](auto ptr) {
+            ptr.mark_recursively_();
+        });
+    }
+
 };
 
 template <typename T>
