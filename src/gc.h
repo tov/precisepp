@@ -1,3 +1,5 @@
+// Gather header
+
 #pragma once
 
 #include "Traceable.h"

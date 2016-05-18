@@ -1,9 +1,10 @@
+// A Collector<T> manages the pointers of one type, T.
 #pragma once
 
 #include "forward.h"
 #include "Collector_base.h"
 #include "Collector_manager.h"
-#include "Traced.h"
+#include "traced.h"
 #include "Traceable.h"
 
 #include <cassert>
@@ -27,11 +28,11 @@ public:
 private:
     friend class traced_ptr<T, Allocator, PAllocator>;
 
-    using ptr_t = Traced<T>*;
+    using ptr_t = traced<T>*;
 
-    static_assert(std::is_same<Traced<T>, typename Allocator::value_type>::value,
+    static_assert(std::is_same<traced<T>, typename Allocator::value_type>::value,
                   "Invalid Allocator");
-    static_assert(std::is_same<Traced<T>*, typename PAllocator::value_type>::value,
+    static_assert(std::is_same<traced<T>*, typename PAllocator::value_type>::value,
                   "Invalid PAllocator");
 
     Allocator allocator_;
@@ -52,7 +53,7 @@ private:
     ptr_t allocate_(Args&& ... args)
     {
         ptr_t result = allocator_.allocate(1);
-        ::new(result) Traced<T>(std::forward<Args>(args)...);
+        ::new(result) traced<T>(std::forward<Args>(args)...);
         objects_.insert(result);
         return result;
     }
@@ -60,7 +61,7 @@ private:
     void deallocate_(ptr_t ptr)
     {
         objects_.erase(ptr);
-        ptr->~Traced<T>();
+        ptr->~traced<T>();
         allocator_.deallocate(ptr, 1);
     }
 
@@ -79,7 +80,7 @@ private:
     }
 
     template <typename S>
-    static void mark_recursively_(Traced<S>* ptr) {
+    static void mark_recursively_(traced<S>* ptr) {
         if (ptr != nullptr && !ptr->mark_) {
             ptr->mark_ = true;
             ::gc::internal::trace_(ptr->object_, [](auto sub_ptr) {

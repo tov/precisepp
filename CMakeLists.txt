@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.3)
 project(precisepp CXX)
 
 set(GC_HEADERS
-        src/util/count_map.h
         src/Collector.h
         src/Collector_base.h
         src/Collector_manager.h
@@ -10,7 +9,7 @@ set(GC_HEADERS
         src/gc.h
         src/stl.h
         src/Traceable.h
-        src/Traced.h
+        src/traced.h
         src/traced_ptr.h)
 
 set(GC_LIB

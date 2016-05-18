@@ -1,9 +1,11 @@
+// A traced_ptr<T> is a garbage-collected pointer to a T.
+
 #pragma once
 
 #include "forward.h"
 #include "Collector.h"
 #include "Traceable.h"
-#include "Traced.h"
+#include "traced.h"
 
 #include <utility>
 #include <unordered_set>
@@ -81,7 +83,7 @@ public:
 private:
     friend class Traceable<traced_ptr>;
 
-    Traced<T>* ptr_;
+    traced<T>* ptr_;
 
     static Collector<T, Allocator, PAllocator>& collector()
     {
@@ -109,8 +111,8 @@ DEFINE_TRACEABLE(traced_ptr<T, Allocator, PAllocator>)
 };
 
 template <typename T,
-          typename Allocator  = std::allocator<Traced<T>>,
-          typename PAllocator = std::allocator<Traced<T>*>,
+          typename Allocator  = std::allocator<traced<T>>,
+          typename PAllocator = std::allocator<traced<T>*>,
           typename... Args>
 traced_ptr<T, Allocator, PAllocator>
 make_traced(Args&&... args)

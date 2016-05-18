@@ -6,10 +6,10 @@
 using namespace std;
 
 template<typename T>
-using alloc = allocator<gc::Traced<T>>;
+using alloc = allocator<gc::traced<T>>;
 
 template<typename T>
-using palloc = allocator<gc::Traced<T>*>;
+using palloc = allocator<gc::traced<T>*>;
 
 template<typename T>
 gc::traced_ptr<T> t(T val)

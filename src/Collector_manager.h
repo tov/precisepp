@@ -1,3 +1,5 @@
+// The CollectorManager holds a pointer to each Collector<T>, and when a
+// collection happens it has each Collector<T> execute each phase.
 #pragma once
 
 #include "Collector_base.h"
