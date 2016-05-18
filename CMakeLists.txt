@@ -18,6 +18,7 @@ set(GC_LIB
 
 set(SOURCE_FILES
         test/main.cpp
+        test/linked_list.h
         ${GC_LIB})
 
 add_executable(precisepp ${SOURCE_FILES})

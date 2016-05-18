@@ -97,7 +97,8 @@ private:
     virtual void find_roots_() override {
         for (ptr_t ptr : objects_)
             ::gc::internal::trace_(ptr->object_, [](auto sub_ptr) {
-                --sub_ptr->root_count_;
+                if (sub_ptr != nullptr)
+                    --sub_ptr->root_count_;
             });
     }
 

@@ -20,15 +20,20 @@ template <typename T, typename Allocator, typename PAllocator>
 class traced_ptr
 {
 public:
+    template <typename... Args>
+    static traced_ptr construct(Args&&... args)
+    {
+        traced_ptr result;
+        result.ptr_ = collector().allocate_(std::forward<Args>(args)...);
+        result.inc_();
+        return result;
+    }
+
     traced_ptr() : ptr_{nullptr}
     { }
 
-    template <typename... Args>
-    traced_ptr(Args&&... args)
-            : ptr_(collector().allocate_(std::forward<Args>(args)...))
-    {
-        inc_();
-    }
+    traced_ptr(std::nullptr_t) : traced_ptr{}
+    { }
 
     traced_ptr(const traced_ptr& other)
     {
@@ -117,7 +122,8 @@ template <typename T,
 traced_ptr<T, Allocator, PAllocator>
 make_traced(Args&&... args)
 {
-    return traced_ptr<T, Allocator, PAllocator>(std::forward<Args>(args)...);
+    return traced_ptr<T, Allocator, PAllocator>
+             ::construct(std::forward<Args>(args)...);
 }
 
 

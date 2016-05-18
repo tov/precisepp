@@ -1,7 +1,7 @@
-#include <iostream>
-#include <memory>
-
 #include "../src/gc.h"
+#include "linked_list.h"
+
+#include <iostream>
 
 using namespace std;
 
@@ -25,13 +25,7 @@ gc::traced_ptr<T> tr(const T& val)
 
 int main()
 {
-    using intp = gc::traced_ptr<int>;
-    using vecp = vector<intp>;
-    auto v = gc::make_traced<vecp>(5, t(8));
-
+    auto c = cons(5, cons(6, cons(7, nullptr)));
     gc::Collector_manager::instance().collect();
 
-    gc::internal::trace_(v, [](auto p){
-        std::cout << "hi\n";
-    });
 }
