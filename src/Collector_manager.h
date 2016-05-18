@@ -27,7 +27,7 @@ private:
     void mark_();
     void sweep_();
 
-    template <typename T>
+    template <typename T, typename Allocator, typename PAllocator>
     friend class Collector;
 };
 

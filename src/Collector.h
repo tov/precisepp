@@ -4,15 +4,17 @@
 #include "Collector_base.h"
 #include "Collector_manager.h"
 #include "Traced.h"
+#include "Traceable.h"
 
 #include <cassert>
 #include <memory>
 #include <utility>
 #include <vector>
+#include <unordered_set>
 
 namespace gc {
 
-template<typename T>
+template <typename T, typename Allocator, typename PAllocator>
 class Collector : private Collector_base
 {
 public:
@@ -23,13 +25,18 @@ public:
     }
 
 private:
-    friend class traced_ptr<T>;
+    friend class traced_ptr<T, Allocator, PAllocator>;
 
-    std::allocator<Traced<T>> allocator_;
+    Allocator allocator_;
 
     using ptr_t = Traced<T>*;
 
-    std::unordered_set<ptr_t> objects_;
+    std::unordered_set<
+            ptr_t,
+            std::hash<ptr_t>,
+            std::equal_to<ptr_t>,
+            PAllocator
+    > objects_;
 
     Collector()
     {

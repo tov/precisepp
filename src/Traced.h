@@ -20,9 +20,10 @@ class Traced
             , ref_count_{0}
     { }
 
-    friend class traced_ptr<T>;
+    template <typename S, typename Allocator, typename PAllocator>
+    friend class traced_ptr;
 
-    template <typename S>
+    template <typename S, typename Allocator, typename PAllocator>
     friend class Collector;
 };
 

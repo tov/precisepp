@@ -14,7 +14,7 @@
 namespace gc
 {
 
-template <typename T>
+template <typename T, typename Allocator, typename PAllocator>
 class traced_ptr
 {
 public:
@@ -83,9 +83,9 @@ private:
 
     Traced<T>* ptr_;
 
-    static Collector<T>& collector()
+    static Collector<T, Allocator, PAllocator>& collector()
     {
-        return Collector<T>::instance();
+        return Collector<T, Allocator, PAllocator>::instance();
     }
 
     void inc_()
@@ -99,19 +99,23 @@ private:
     }
 };
 
-template <typename T>
-DEFINE_TRACEABLE(traced_ptr<T>)
+template <typename T, typename Allocator, typename PAllocator>
+DEFINE_TRACEABLE(traced_ptr<T, Allocator, PAllocator>)
 {
-    DEFINE_TRACE(const traced_ptr<T>& p)
+    DEFINE_TRACE(const traced_ptr<T, Allocator, PAllocator>& p)
     {
         tracer(p.ptr_);
     }
 };
 
-template <typename T, typename... Args>
-traced_ptr<T> make_traced(Args&&... args)
+template <typename T,
+          typename Allocator  = std::allocator<Traced<T>>,
+          typename PAllocator = std::allocator<Traced<T>*>,
+          typename... Args>
+traced_ptr<T, Allocator, PAllocator>
+make_traced(Args&&... args)
 {
-    return traced_ptr<T>(std::forward<Args>(args)...);
+    return traced_ptr<T, Allocator, PAllocator>(std::forward<Args>(args)...);
 }
 
 
