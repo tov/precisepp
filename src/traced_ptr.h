@@ -1,8 +1,9 @@
 #pragma once
 
-#include "tracing.h"
+#include "forward.h"
+#include "Traceable.h"
 #include "stl.h"
-#include "allocator.h"
+#include "GC_allocator.h"
 
 #include <utility>
 #include <unordered_set>
@@ -80,7 +81,7 @@ public:
 private:
     friend class Traceable<traced_ptr>;
 
-    T* ptr_;
+    Traced<T>* ptr_;
 
     static GC_allocator<T>& allocator()
     {

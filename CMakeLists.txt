@@ -3,12 +3,12 @@ project(precisepp CXX)
 
 set(GC_HEADERS
         src/gc.h
-        src/ptr.h
-        src/tracing.h
+        src/traced_ptr.h
+        src/Traceable.h
         src/stl.h
-        src/allocator.h
-        src/manager.h
-        src/manager.cpp
+        src/GC_allocator.h
+        src/Allocator_manager.h
+        src/Allocator_manager.cpp
         src/util/count_map.h)
 
 set(GC_LIB

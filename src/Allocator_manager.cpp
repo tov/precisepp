@@ -1,4 +1,9 @@
-#include "manager.h"
+#include "Allocator_manager.h"
+
+namespace gc
+{
+
+Allocator_manager::Allocator_manager() = default;
 
 Allocator_manager& Allocator_manager::instance()
 {
@@ -16,3 +21,5 @@ void Allocator_manager::sweep()
     for (auto action : sweep_actions_)
         action();
 }
+
+} // end namespace gc
