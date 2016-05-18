@@ -20,6 +20,8 @@ int main()
 {
     auto v = gc::make_traced<vector<gc::traced_ptr<int>>>(5, t(8));
 
+    gc::Collector_manager::instance().collect();
+
     gc::internal::trace_(v, [](auto p){
         std::cout << "hi\n";
     });
