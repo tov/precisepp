@@ -1,1 +1,4 @@
- - Actually do tracing garbage collection.
+ - Figure out how to test it.
+ - Track heap and allocation statistics.
+ - Have it figure out when to collect based on stats.
+ - Store traced<T>s in a doubly-linked list rather than a set
