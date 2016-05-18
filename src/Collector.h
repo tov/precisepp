@@ -56,14 +56,14 @@ private:
     void inc_(ptr_t ptr)
     {
         if (ptr != nullptr) {
-            ++ptr->refcount_;
+            ++ptr->ref_count_;
         }
     }
 
     void dec_(ptr_t ptr)
     {
         if (ptr != nullptr) {
-            --ptr->refcount_;
+            --ptr->ref_count_;
         }
     }
 
