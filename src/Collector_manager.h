@@ -22,6 +22,8 @@ private:
 
     void register_collector_(Collector_base&);
 
+    void save_counts_();
+    void find_roots_();
     void mark_();
     void sweep_();
 
