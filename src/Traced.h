@@ -11,7 +11,6 @@ class Traced
     T    object_;
     bool mark_;
 
-public:
     template<typename... Args>
     Traced(Args&& ... args)
             : object_{std::forward<Args>(args)...}

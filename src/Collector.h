@@ -42,7 +42,7 @@ private:
     ptr_t allocate_(Args&& ... args)
     {
         ptr_t result = allocator_.allocate(1);
-        allocator_.construct(result, std::forward<Args>(args)...);
+        ::new(result) Traced<T>{std::forward<Args>(args)...};
         objects_.insert(result);
         return result;
     }
@@ -50,7 +50,7 @@ private:
     void deallocate_(ptr_t ptr)
     {
         objects_.erase(ptr);
-        allocator_.destroy(ptr);
+        ptr->~Traced<T>();
         allocator_.deallocate(ptr, 1);
     }
 
