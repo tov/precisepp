@@ -23,8 +23,6 @@ public:
         return instance_;
     }
 
-    virtual ~Collector() override { }
-
 private:
     friend class traced_ptr<T>;
 
