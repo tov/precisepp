@@ -23,7 +23,7 @@ public:
 
     template <typename... Args>
     traced_ptr(Args&&... args)
-            : ptr_{collector().allocate_(std::forward<Args>(args)...)}
+            : ptr_(collector().allocate_(std::forward<Args>(args)...))
     {
         inc_();
     }
@@ -111,7 +111,7 @@ DEFINE_TRACEABLE(traced_ptr<T>)
 template <typename T, typename... Args>
 traced_ptr<T> make_traced(Args&&... args)
 {
-    return traced_ptr<T>{std::forward<Args>(args)...};
+    return traced_ptr<T>(std::forward<Args>(args)...);
 }
 
 

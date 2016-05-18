@@ -42,7 +42,7 @@ private:
     ptr_t allocate_(Args&& ... args)
     {
         ptr_t result = allocator_.allocate(1);
-        ::new(result) Traced<T>{std::forward<Args>(args)...};
+        ::new(result) Traced<T>(std::forward<Args>(args)...);
         objects_.insert(result);
         return result;
     }
@@ -56,12 +56,22 @@ private:
 
     void inc_(ptr_t ptr)
     {
-        if (ptr != nullptr) roots_.inc(ptr);
+        if (ptr != nullptr) {
+            roots_.inc(ptr);
+#ifdef DEBUG_REFCOUNTS
+            ++ptr->refcount_;
+#endif
+        }
     }
 
     void dec_(ptr_t ptr)
     {
-        if (ptr != nullptr) roots_.dec(ptr);
+        if (ptr != nullptr) {
+            roots_.dec(ptr);
+#ifdef DEBUG_REFCOUNTS
+            --ptr->refcount_;
+#endif
+        }
     }
 
     template <typename S>
