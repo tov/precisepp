@@ -16,9 +16,18 @@ class traced_ptr;
 template<typename T>
 class GC_allocator
 {
+public:
+    static GC_allocator& instance() noexcept
+    {
+        static GC_allocator instance_;
+        return instance_;
+    }
+
+private:
     friend class traced_ptr<T>;
 
     std::allocator<T> allocator_;
+    double phi_ = initial_phi;
 
     T* objects_;
     size_t capacity_;
@@ -28,6 +37,7 @@ class GC_allocator
     std::vector<bool> marked_;
 
     static constexpr size_t initial_capacity = 1024;
+    static constexpr double initial_phi      = 0.75;
 
     GC_allocator()
             : capacity_{initial_capacity}
@@ -36,12 +46,6 @@ class GC_allocator
             , marked_(initial_capacity, false)
     {
         Allocator_manager::instance().register_action(&sweep_);
-    }
-
-    static GC_allocator& instance() noexcept
-    {
-        static GC_allocator instance_;
-        return instance_;
     }
 
     template<typename... Args>
@@ -99,13 +103,18 @@ class GC_allocator
     }
 
     void do_sweep_() {
+        size_t live = 0;
+
         for (size_t i = 0; i < capacity_; ++i) {
             if (used_[i] && !marked_[i]) {
                 allocator_.destroy(objects_ + i);
                 used_[i] = false;
             }
 
-            marked_[i] = false;
+            else if (used_[i]) {
+                ++live;
+                marked_[i] = false;
+            }
         }
     }
 
