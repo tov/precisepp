@@ -1,7 +1,5 @@
 #include <iostream>
 
-#define DEBUG_REFCOUNTS
-
 #include "../src/gc.h"
 
 using namespace std;

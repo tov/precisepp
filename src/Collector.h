@@ -31,7 +31,6 @@ private:
     using ptr_t = Traced<T>*;
 
     std::unordered_set<ptr_t> objects_;
-    count_map<ptr_t>          roots_;
 
     Collector()
     {
@@ -57,20 +56,14 @@ private:
     void inc_(ptr_t ptr)
     {
         if (ptr != nullptr) {
-            roots_.inc(ptr);
-#ifdef DEBUG_REFCOUNTS
             ++ptr->refcount_;
-#endif
         }
     }
 
     void dec_(ptr_t ptr)
     {
         if (ptr != nullptr) {
-            roots_.dec(ptr);
-#ifdef DEBUG_REFCOUNTS
             --ptr->refcount_;
-#endif
         }
     }
 
@@ -87,8 +80,8 @@ private:
     }
 
     virtual void mark_() override {
-        for (const auto& p : roots_)
-            mark_recursively_(p.first);
+//        for (const auto& p : roots_)
+//            mark_recursively_(p.first);
     }
 
     virtual void sweep_() override {
