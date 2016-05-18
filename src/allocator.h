@@ -99,7 +99,14 @@ class GC_allocator
     }
 
     void do_sweep_() {
-        // TODO
+        for (size_t i = 0; i < capacity_; ++i) {
+            if (used_[i] && !marked_[i]) {
+                allocator_.destroy(objects_ + i);
+                used_[i] = false;
+            }
+
+            marked_[i] = false;
+        }
     }
 
     void collect() {
