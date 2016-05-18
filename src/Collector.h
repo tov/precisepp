@@ -27,9 +27,14 @@ public:
 private:
     friend class traced_ptr<T, Allocator, PAllocator>;
 
-    Allocator allocator_;
-
     using ptr_t = Traced<T>*;
+
+    static_assert(std::is_same<Traced<T>, typename Allocator::value_type>::value,
+                  "Invalid Allocator");
+    static_assert(std::is_same<Traced<T>*, typename PAllocator::value_type>::value,
+                  "Invalid PAllocator");
+
+    Allocator allocator_;
 
     std::unordered_set<
             ptr_t,
