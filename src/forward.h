@@ -10,7 +10,7 @@ template <typename T>
 class traced_ptr;
 
 template <typename T>
-class GC_allocator;
+class Collector;
 
 
 } // end namespace gc

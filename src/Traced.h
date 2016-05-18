@@ -19,7 +19,9 @@ public:
     { }
 
     friend class traced_ptr<T>;
-    friend class GC_allocator<T>;
+
+    template <typename S>
+    friend class Collector;
 };
 
 } // end namespace gc

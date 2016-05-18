@@ -2,7 +2,8 @@
 
 #include "forward.h"
 #include "util/count_map.h"
-#include "Allocator_manager.h"
+#include "Collector_base.h"
+#include "Collector_manager.h"
 #include "Traced.h"
 
 #include <cassert>
@@ -13,14 +14,16 @@
 namespace gc {
 
 template<typename T>
-class GC_allocator
+class Collector : private Collector_base
 {
 public:
-    static GC_allocator& instance() noexcept
+    static Collector& instance() noexcept
     {
-        static GC_allocator instance_;
+        static Collector instance_;
         return instance_;
     }
+
+    virtual ~Collector() override { }
 
 private:
     friend class traced_ptr<T>;
@@ -32,9 +35,9 @@ private:
     std::unordered_set<ptr_t> objects_;
     count_map<ptr_t>          roots_;
 
-    GC_allocator()
+    Collector()
     {
-        Allocator_manager::instance().register_action(&sweep_);
+        Collector_manager::instance().register_collector_(*this);
     }
 
     template<typename... Args>
@@ -63,7 +66,8 @@ private:
         if (ptr != nullptr) roots_.dec(ptr);
     }
 
-    static void mark_recursively_(ptr_t ptr) {
+    template <typename S>
+    static void mark_recursively_(Traced<S>* ptr) {
         if (ptr != nullptr) {
             if (!ptr->mark_) {
                 ptr->mark_ = true;
@@ -74,41 +78,18 @@ private:
         }
     }
 
-    static void sweep_() {
-        instance().do_sweep_();
+    virtual void mark_() override {
+        for (const auto& p : roots_)
+            mark_recursively_(p.first);
     }
 
-    void do_sweep_() {
-        size_t live = 0;
-
+    virtual void sweep_() override {
         for (ptr_t ptr : objects_) {
             if (!ptr->mark_) {
                 deallocate_(ptr);
             }
         }
     }
-
-    static void mark_() {
-        instance().do_mark_();
-    }
-
-    void do_mark_() {
-        for (const auto& p : roots_)
-            mark_recursively_(p->first);
-    }
-
-    void collect() {
-        for (const auto& p : roots_)
-            mark_recursively_(p->first);
-
-        Allocator_manager::instance().sweep();
-    }
-
-//    void mark_()
-//    {
-//        for (auto* ptr : objects_)
-//            ::gc::internal::trace_(ptr->data_, &mark_tracer_);
-//    }
 };
 
 } // end namespace gc

@@ -3,7 +3,7 @@
 #include "forward.h"
 #include "Traceable.h"
 #include "stl.h"
-#include "GC_allocator.h"
+#include "Collector.h"
 
 #include <utility>
 #include <unordered_set>
@@ -83,9 +83,9 @@ private:
 
     Traced<T>* ptr_;
 
-    static GC_allocator<T>& allocator()
+    static Collector<T>& allocator()
     {
-        return GC_allocator<T>::instance();
+        return Collector<T>::instance();
     }
 
     void inc_()
