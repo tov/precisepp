@@ -23,7 +23,7 @@ public:
 
     template <typename... Args>
     traced_ptr(Args&&... args)
-            : ptr_{allocator().allocate_(std::forward<Args>(args)...)}
+            : ptr_{collector().allocate_(std::forward<Args>(args)...)}
     {
         inc_();
     }
@@ -60,22 +60,22 @@ public:
 
     T& operator*()
     {
-        return *ptr_;
+        return *ptr_->object_;
     }
 
     const T& operator*() const
     {
-        return *ptr_;
+        return *ptr_->object_;
     }
 
     T* operator->()
     {
-        return ptr_;
+        return ptr_->object_;
     }
 
     const T* operator->() const
     {
-        return ptr_;
+        return ptr_->object_;
     }
 
 private:
@@ -83,29 +83,20 @@ private:
 
     Traced<T>* ptr_;
 
-    static Collector<T>& allocator()
+    static Collector<T>& collector()
     {
         return Collector<T>::instance();
     }
 
     void inc_()
     {
-        allocator().inc_(ptr_);
+        collector().inc_(ptr_);
     }
 
     void dec_()
     {
-        allocator().dec_(ptr_);
+        collector().dec_(ptr_);
     }
-
-    void mark_recursively_()
-    {
-        allocator().mark_(ptr_);
-        ::gc::internal::trace_(*ptr_, [](auto ptr) {
-            ptr.mark_recursively_();
-        });
-    }
-
 };
 
 template <typename T>
