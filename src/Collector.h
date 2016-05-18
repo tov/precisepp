@@ -16,7 +16,7 @@
 namespace gc {
 
 template <typename T, typename Allocator, typename PAllocator>
-class Collector : private Collector_base
+class Collector : private internal::Collector_base
 {
 public:
     static Collector& instance() noexcept

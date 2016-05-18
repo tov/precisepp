@@ -18,11 +18,11 @@ public:
     void collect();
 
 private:
-    std::vector<Collector_base*> collectors_;
+    std::vector<internal::Collector_base*> collectors_;
 
     Collector_manager();
 
-    void register_collector_(Collector_base&);
+    void register_collector_(internal::Collector_base&);
 
     void save_counts_();
     void find_roots_();

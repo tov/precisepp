@@ -7,6 +7,9 @@ namespace gc
 
 class Collector_manager;
 
+namespace internal
+{
+
 class Collector_base
 {
     virtual void save_counts_()   =0;
@@ -14,10 +17,11 @@ class Collector_base
     virtual void mark_()          =0;
     virtual void sweep_()         =0;
 
-    friend class Collector_manager;
+    friend class ::gc::Collector_manager;
 
 protected:
     virtual ~Collector_base() { }
 };
 
+} // end namespace internal
 } // end namespace gc
