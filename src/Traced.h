@@ -6,7 +6,7 @@ namespace gc
 {
 
 template<typename T>
-class Traced
+class traced
 {
     T      object_;
     bool   mark_;
@@ -14,7 +14,7 @@ class Traced
     size_t root_count_;
 
     template<typename... Args>
-    Traced(Args&& ... args)
+    traced(Args&& ... args)
             : object_(std::forward<Args>(args)...)
             , mark_{false}
             , ref_count_{0}
