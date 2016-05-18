@@ -67,22 +67,22 @@ public:
 
     T& operator*()
     {
-        return *ptr_->object_;
+        return ptr_->object_;
     }
 
     const T& operator*() const
     {
-        return *ptr_->object_;
+        return ptr_->object_;
     }
 
     T* operator->()
     {
-        return ptr_->object_;
+        return &ptr_->object_;
     }
 
     const T* operator->() const
     {
-        return ptr_->object_;
+        return &ptr_->object_;
     }
 
 private:

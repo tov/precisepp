@@ -15,7 +15,7 @@ class traced
 
     template<typename... Args>
     traced(Args&& ... args)
-            : object_(std::forward<Args>(args)...)
+            : object_(std::forward<Args>(args) ...)
             , mark_{false}
             , ref_count_{0}
     { }
