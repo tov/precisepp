@@ -51,13 +51,6 @@ private:
     traced<T>* pages_;
     traced<T>* free_list_;
 
-    std::unordered_set<
-            ptr_t,
-            std::hash<ptr_t>,
-            std::equal_to<ptr_t>,
-            PAllocator
-    > objects_;
-
     TypedSpace(Collector& collector = Collector::instance())
             : collector_{collector}
             , heap_size_{0}
@@ -133,36 +126,48 @@ private:
         }
     }
 
+    template <typename F>
+    void for_heap(F f)
+    {
+        for (ptr_t page = pages_; page != nullptr; page = page->next_page_())
+            for (size_t i = 1; i < page->page_size_(); ++i)
+                if (!page[i].free_)
+                    f(&page[i]);
+    }
+
     virtual void save_counts_() override
     {
-        for (ptr_t ptr : objects_)
+        for_heap([](ptr_t ptr) {
             ptr->root_count_() = ptr->ref_count_();
+        });
     }
 
     virtual void find_roots_() override
     {
-        for (ptr_t ptr : objects_)
+        for_heap([](ptr_t ptr) {
             ::gc::internal::trace_(ptr->object_(), [](auto sub_ptr) {
                 if (sub_ptr != nullptr)
                     --sub_ptr->root_count_();
             });
+        });
     }
 
     virtual void mark_() override
     {
-        for (ptr_t ptr : objects_)
+        for_heap([](ptr_t ptr) {
             if (ptr->root_count_() > 0)
                 mark_recursively_(ptr);
+        });
     }
 
     virtual void sweep_() override
     {
-        for (ptr_t ptr : objects_) {
+        for_heap([this](ptr_t ptr) {
             if (ptr->mark_)
                 ptr->mark_ = false;
             else
                 deallocate_(ptr);
-            }
+        });
     }
 
     virtual size_t element_size_() override
@@ -177,7 +182,7 @@ private:
 
     virtual size_t used_() override
     {
-        return heap_size_;
+        return live_size_;
     }
 };
 
