@@ -47,6 +47,9 @@ private:
     Allocator allocator_;
     Collector& collector_;
     size_t heap_size_;
+    size_t live_size_;
+    traced<T>* pages_;
+    traced<T>* free_list_;
 
     std::unordered_set<
             ptr_t,
@@ -58,35 +61,65 @@ private:
     TypedSpace(Collector& collector = Collector::instance())
             : collector_{collector}
             , heap_size_{0}
+            , live_size_{0}
+            , pages_{nullptr}
+            , free_list_{nullptr}
     {
         collector_.register_space_(*this);
     }
 
+    void add_page_(size_t size)
+    {
+        ptr_t page = allocator_.allocate(size);
+        page[0].initialize_header_(size, pages_);
+        pages_ = page;
+
+        for (size_t i = 1; i < size; ++i)
+            add_to_free_list_(&page[i]);
+
+        heap_size_ += size - 1;
+    }
+
+    void add_to_free_list_(ptr_t ptr)
+    {
+        ptr->initialize_free_(free_list_);
+        free_list_ = ptr;
+    }
+
+    static constexpr size_t initial_page_size = 16;
+
     template<typename... Args>
     ptr_t allocate_(Args&& ... args)
     {
-        ptr_t result = allocator_.allocate(1);
+        if (pages_ == nullptr) {
+            add_page_(initial_page_size);
+        } else if (free_list_ == nullptr) {
+            assert(false);
+        }
+
+        ptr_t result = free_list_;
+        free_list_   = free_list_->next_free_();
 
         try {
-            result->initialize_data_(std::forward<Args>(args)...);
+            result->initialize_used_(std::forward<Args>(args)...);
         } catch (...) {
-            allocator_.deallocate(result, 1);
+            result->initialize_free_(free_list_);
+            free_list_ = result;
             throw;
         }
 
-        objects_.insert(result); // What if this fails?
-        ++heap_size_;
+        ++live_size_;
 
         return result;
     }
 
     void deallocate_(ptr_t ptr)
     {
-        objects_.erase(ptr);
-        --heap_size_;
-
         ptr->object_().~T();
-        allocator_.deallocate(ptr, 1);
+        ptr->initialize_free_(free_list_);
+        free_list_ = ptr;
+
+        --live_size_;
     }
 
     template <typename S>
