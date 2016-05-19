@@ -11,7 +11,7 @@ Collector& Collector::instance()
     return manager;
 }
 
-void Collector::register_collector_(internal::Space& collector)
+void Collector::register_space_(internal::Space& collector)
 {
     collectors_.push_back(&collector);
 }

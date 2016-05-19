@@ -22,7 +22,7 @@ private:
 
     Collector();
 
-    void register_collector_(internal::Space&);
+    void register_space_(internal::Space&);
 
     void save_counts_();
     void find_roots_();

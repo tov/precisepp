@@ -36,6 +36,7 @@ private:
                   "Invalid PAllocator");
 
     Allocator allocator_;
+    Collector& collector_;
 
     std::unordered_set<
             ptr_t,
@@ -44,9 +45,10 @@ private:
             PAllocator
     > objects_;
 
-    TypedSpace()
+    TypedSpace(Collector& collector = Collector::instance())
+            : collector_{collector}
     {
-        Collector::instance().register_collector_(*this);
+        collector_.register_space_(*this);
     }
 
     template<typename... Args>
