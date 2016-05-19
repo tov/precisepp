@@ -97,12 +97,12 @@ private:
 
     void inc_()
     {
-        collector().inc_(ptr_);
+        ++ptr_->ref_count_;
     }
 
     void dec_()
     {
-        collector().dec_(ptr_);
+        --ptr_->ref_count_;
     }
 };
 

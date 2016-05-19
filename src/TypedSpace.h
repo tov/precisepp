@@ -80,20 +80,6 @@ private:
         allocator_.deallocate(ptr, 1);
     }
 
-    void inc_(ptr_t ptr)
-    {
-        if (ptr != nullptr) {
-            ++ptr->ref_count_;
-        }
-    }
-
-    void dec_(ptr_t ptr)
-    {
-        if (ptr != nullptr) {
-            --ptr->ref_count_;
-        }
-    }
-
     template <typename S>
     static void mark_recursively_(traced<S>* ptr)
     {
