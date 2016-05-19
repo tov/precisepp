@@ -1,5 +1,7 @@
 #include "Collector.h"
 
+#include <functional>
+
 namespace gc
 {
 
@@ -11,19 +13,19 @@ Collector& Collector::instance()
     return manager;
 }
 
-void Collector::register_space_(internal::Space& collector)
+void Collector::register_space_(internal::Space& space)
 {
-    collectors_.push_back(&collector);
+    spaces_.push_back(&space);
 }
 
 void Collector::collect()
 {
-    typedef void(internal::Space::*action_t)();
+    using std::mem_fn;
 
-    for_collectors([](auto space) { space->save_counts_(); });
-    for_collectors([](auto space) { space->find_roots_(); });
-    for_collectors([](auto space) { space->mark_(); });
-    for_collectors([](auto space) { space->sweep_(); });
+    for_spaces(mem_fn(&internal::Space::save_counts_));
+    for_spaces(mem_fn(&internal::Space::find_roots_));
+    for_spaces(mem_fn(&internal::Space::mark_));
+    for_spaces(mem_fn(&internal::Space::sweep_));
 }
 
 } // end namespace gc
