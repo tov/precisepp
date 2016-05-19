@@ -24,13 +24,18 @@ private:
 
     void register_space_(internal::Space&);
 
-    void save_counts_();
-    void find_roots_();
-    void mark_();
-    void sweep_();
+    template <typename F>
+    void for_collectors(F);
 
     template <typename T, typename Allocator, typename PAllocator>
     friend class TypedSpace;
 };
+
+template <typename F>
+void Collector::for_collectors(F f)
+{
+    for (internal::Space* collector : collectors_)
+        f(collector);
+}
 
 } // end namespace gc
