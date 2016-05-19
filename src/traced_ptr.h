@@ -3,7 +3,6 @@
 #pragma once
 
 #include "forward.h"
-#include "TypedSpace.h"
 #include "Traceable.h"
 #include "traced.h"
 
@@ -20,15 +19,6 @@ template <typename T, typename Allocator, typename PAllocator>
 class traced_ptr
 {
 public:
-    template <typename... Args>
-    static traced_ptr construct(Args&&... args)
-    {
-        traced_ptr result;
-        result.ptr_ = collector().allocate_(std::forward<Args>(args)...);
-        result.inc_();
-        return result;
-    }
-
     traced_ptr() : ptr_{nullptr}
     { }
 
@@ -87,22 +77,20 @@ public:
 
 private:
     friend class Traceable<traced_ptr>;
+    friend class TypedSpace<T, Allocator, PAllocator>;
 
     traced<T>* ptr_;
 
-    static TypedSpace<T, Allocator, PAllocator>& collector()
-    {
-        return TypedSpace<T, Allocator, PAllocator>::instance();
-    }
-
     void inc_()
     {
-        ++ptr_->ref_count_;
+        if (ptr_ != nullptr)
+            ++ptr_->ref_count_;
     }
 
     void dec_()
     {
-        --ptr_->ref_count_;
+        if (ptr_ != nullptr)
+            --ptr_->ref_count_;
     }
 };
 
@@ -114,17 +102,5 @@ DEFINE_TRACEABLE(traced_ptr<T, Allocator, PAllocator>)
         tracer(p.ptr_);
     }
 };
-
-template <typename T,
-          typename Allocator  = std::allocator<traced<T>>,
-          typename PAllocator = std::allocator<traced<T>*>,
-          typename... Args>
-traced_ptr<T, Allocator, PAllocator>
-make_traced(Args&&... args)
-{
-    return traced_ptr<T, Allocator, PAllocator>
-             ::construct(std::forward<Args>(args)...);
-}
-
 
 } // end namespace gc

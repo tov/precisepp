@@ -5,6 +5,7 @@
 #include "Space.h"
 #include "Collector.h"
 #include "traced.h"
+#include "traced_ptr.h"
 #include "Traceable.h"
 
 #include <cassert>
@@ -25,9 +26,17 @@ public:
         return instance_;
     }
 
-private:
-    friend class traced_ptr<T, Allocator, PAllocator>;
+    template <typename... Args>
+    traced_ptr<T, Allocator, PAllocator>
+    allocate(Args&&... args)
+    {
+        traced_ptr<T, Allocator, PAllocator> result;
+        result.ptr_ = allocate_(std::forward<Args>(args)...);
+        result.inc_();
+        return result;
+    };
 
+private:
     using ptr_t = traced<T>*;
 
     static_assert(std::is_same<traced<T>, typename Allocator::value_type>::value,
@@ -138,5 +147,16 @@ private:
         return heap_size_;
     }
 };
+
+template <typename T,
+          typename Allocator  = std::allocator<traced<T>>,
+          typename PAllocator = std::allocator<traced<T>*>,
+          typename... Args>
+traced_ptr<T, Allocator, PAllocator>
+make_traced(Args&&... args)
+{
+    return TypedSpace<T, Allocator, PAllocator>::instance()
+             .allocate(std::forward<Args>(args)...);
+}
 
 } // end namespace gc
