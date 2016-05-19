@@ -68,7 +68,7 @@ private:
         ptr_t result = allocator_.allocate(1);
 
         try {
-            ::new(result) traced<T>(std::forward<Args>(args)...);
+            result->initialize_data_(std::forward<Args>(args)...);
         } catch (...) {
             allocator_.deallocate(result, 1);
             throw;
@@ -85,7 +85,7 @@ private:
         objects_.erase(ptr);
         --heap_size_;
 
-        ptr->~traced<T>();
+        ptr->object_().~T();
         allocator_.deallocate(ptr, 1);
     }
 
@@ -94,7 +94,7 @@ private:
     {
         if (ptr != nullptr && !ptr->mark_) {
             ptr->mark_ = true;
-            ::gc::internal::trace_(ptr->object_, [](auto sub_ptr) {
+            ::gc::internal::trace_(ptr->object_(), [](auto sub_ptr) {
                 mark_recursively_(sub_ptr);
             });
         }
@@ -103,22 +103,22 @@ private:
     virtual void save_counts_() override
     {
         for (ptr_t ptr : objects_)
-            ptr->root_count_ = ptr->ref_count_;
+            ptr->root_count_() = ptr->ref_count_();
     }
 
     virtual void find_roots_() override
     {
         for (ptr_t ptr : objects_)
-            ::gc::internal::trace_(ptr->object_, [](auto sub_ptr) {
+            ::gc::internal::trace_(ptr->object_(), [](auto sub_ptr) {
                 if (sub_ptr != nullptr)
-                    --sub_ptr->root_count_;
+                    --sub_ptr->root_count_();
             });
     }
 
     virtual void mark_() override
     {
         for (ptr_t ptr : objects_)
-            if (ptr->root_count_ > 0)
+            if (ptr->root_count_() > 0)
                 mark_recursively_(ptr);
     }
 

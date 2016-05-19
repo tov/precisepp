@@ -57,22 +57,22 @@ public:
 
     T& operator*()
     {
-        return ptr_->object_;
+        return ptr_->object_();
     }
 
     const T& operator*() const
     {
-        return ptr_->object_;
+        return ptr_->object_();
     }
 
     T* operator->()
     {
-        return &ptr_->object_;
+        return &ptr_->object_();
     }
 
     const T* operator->() const
     {
-        return &ptr_->object_;
+        return &ptr_->object_();
     }
 
 private:
@@ -84,13 +84,13 @@ private:
     void inc_()
     {
         if (ptr_ != nullptr)
-            ++ptr_->ref_count_;
+            ++ptr_->ref_count_();
     }
 
     void dec_()
     {
         if (ptr_ != nullptr)
-            --ptr_->ref_count_;
+            --ptr_->ref_count_();
     }
 };
 
