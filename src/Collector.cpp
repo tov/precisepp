@@ -1,46 +1,46 @@
-#include "Collector_manager.h"
+#include "Collector.h"
 
 namespace gc
 {
 
-Collector_manager::Collector_manager() = default;
+Collector::Collector() = default;
 
-Collector_manager& Collector_manager::instance()
+Collector& Collector::instance()
 {
-    static Collector_manager manager;
+    static Collector manager;
     return manager;
 }
 
-void Collector_manager::register_collector_(internal::Collector_base& collector)
+void Collector::register_collector_(internal::Space& collector)
 {
     collectors_.push_back(&collector);
 }
 
-void Collector_manager::save_counts_()
+void Collector::save_counts_()
 {
     for (auto collector : collectors_)
         collector->save_counts_();
 }
 
-void Collector_manager::find_roots_()
+void Collector::find_roots_()
 {
     for (auto collector : collectors_)
         collector->find_roots_();
 }
 
-void Collector_manager::mark_()
+void Collector::mark_()
 {
     for (auto collector : collectors_)
         collector->mark_();
 }
 
-void Collector_manager::sweep_()
+void Collector::sweep_()
 {
     for (auto collector : collectors_)
         collector->sweep_();
 }
 
-void Collector_manager::collect()
+void Collector::collect()
 {
     save_counts_();
     find_roots_();

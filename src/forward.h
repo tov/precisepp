@@ -18,7 +18,7 @@ class traced_ptr;
 template <typename T,
           typename Allocator  = std::allocator<traced<T>>,
           typename PAllocator = std::allocator<traced<T>*>>
-class Collector;
+class TypedSpace;
 
 
 } // end namespace gc

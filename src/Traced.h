@@ -24,7 +24,7 @@ class traced
     friend class traced_ptr;
 
     template <typename S, typename Allocator, typename PAllocator>
-    friend class Collector;
+    friend class TypedSpace;
 };
 
 } // end namespace gc

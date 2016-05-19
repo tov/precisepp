@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 3.3)
 project(precisepp CXX)
 
 set(GC_HEADERS
+        src/TypedSpace.h
+        src/Space.h
         src/Collector.h
-        src/Collector_base.h
-        src/Collector_manager.h
         src/forward.h
         src/gc.h
         src/stl.h
@@ -13,7 +13,7 @@ set(GC_HEADERS
         src/traced_ptr.h)
 
 set(GC_LIB
-        src/Collector_manager.cpp
+        src/Collector.cpp
         ${GC_HEADERS})
 
 set(SOURCE_FILES

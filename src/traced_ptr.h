@@ -3,7 +3,7 @@
 #pragma once
 
 #include "forward.h"
-#include "Collector.h"
+#include "TypedSpace.h"
 #include "Traceable.h"
 #include "traced.h"
 
@@ -90,9 +90,9 @@ private:
 
     traced<T>* ptr_;
 
-    static Collector<T, Allocator, PAllocator>& collector()
+    static TypedSpace<T, Allocator, PAllocator>& collector()
     {
-        return Collector<T, Allocator, PAllocator>::instance();
+        return TypedSpace<T, Allocator, PAllocator>::instance();
     }
 
     void inc_()

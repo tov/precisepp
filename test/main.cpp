@@ -7,6 +7,6 @@ int main()
 {
     auto c = cons(5, cons(6, cons(7, nullptr)));
     c->rest()->rest()->rest() = c;
-    gc::Collector_manager::instance().collect();
+    gc::Collector::instance().collect();
 
 }
