@@ -82,7 +82,8 @@ private:
     }
 
     template <typename S>
-    static void mark_recursively_(traced<S>* ptr) {
+    static void mark_recursively_(traced<S>* ptr)
+    {
         if (ptr != nullptr && !ptr->mark_) {
             ptr->mark_ = true;
             ::gc::internal::trace_(ptr->object_, [](auto sub_ptr) {
@@ -91,12 +92,14 @@ private:
         }
     }
 
-    virtual void save_counts_() override {
+    virtual void save_counts_() override
+    {
         for (ptr_t ptr : objects_)
             ptr->root_count_ = ptr->ref_count_;
     }
 
-    virtual void find_roots_() override {
+    virtual void find_roots_() override
+    {
         for (ptr_t ptr : objects_)
             ::gc::internal::trace_(ptr->object_, [](auto sub_ptr) {
                 if (sub_ptr != nullptr)
@@ -104,13 +107,15 @@ private:
             });
     }
 
-    virtual void mark_() override {
+    virtual void mark_() override
+    {
         for (ptr_t ptr : objects_)
             if (ptr->root_count_ > 0)
                 mark_recursively_(ptr);
     }
 
-    virtual void sweep_() override {
+    virtual void sweep_() override
+    {
         for (ptr_t ptr : objects_) {
             if (ptr->mark_)
                 ptr->mark_ = false;
