@@ -37,6 +37,7 @@ private:
 
     Allocator allocator_;
     Collector& collector_;
+    size_t heap_size_;
 
     std::unordered_set<
             ptr_t,
@@ -47,6 +48,7 @@ private:
 
     TypedSpace(Collector& collector = Collector::instance())
             : collector_{collector}
+            , heap_size_{0}
     {
         collector_.register_space_(*this);
     }
@@ -55,14 +57,25 @@ private:
     ptr_t allocate_(Args&& ... args)
     {
         ptr_t result = allocator_.allocate(1);
-        ::new(result) traced<T>(std::forward<Args>(args)...);
-        objects_.insert(result);
+
+        try {
+            ::new(result) traced<T>(std::forward<Args>(args)...);
+        } catch (...) {
+            allocator_.deallocate(result, 1);
+            throw;
+        }
+
+        objects_.insert(result); // What if this fails?
+        ++heap_size_;
+
         return result;
     }
 
     void deallocate_(ptr_t ptr)
     {
         objects_.erase(ptr);
+        --heap_size_;
+
         ptr->~traced<T>();
         allocator_.deallocate(ptr, 1);
     }
@@ -122,6 +135,21 @@ private:
             else
                 deallocate_(ptr);
             }
+    }
+
+    virtual size_t element_size_() override
+    {
+        return sizeof(T);
+    }
+
+    virtual size_t capacity_() override
+    {
+        return heap_size_;
+    }
+
+    virtual size_t used_() override
+    {
+        return heap_size_;
     }
 };
 
