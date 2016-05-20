@@ -28,7 +28,7 @@ private:
 
 template <typename T>
 DEFINE_TRACEABLE(node<T>) {
-    DEFINE_TRACE(const node<T>& n)
+    TO_TRACE(const node<T>& n)
     {
         TRACE(n.first_);
         TRACE(n.rest_);

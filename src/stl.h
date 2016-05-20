@@ -27,10 +27,7 @@ namespace gc {
 DEFINE_TRACEABLE_UNTRACED(std::string);
 
 template <size_t size>
-DEFINE_TRACEABLE(std::bitset<size>)
-{
-    DEFINE_TRACE(const std::bitset<size>&) {}
-};
+DEFINE_TRACEABLE_UNTRACED_T(std::bitset<size>);
 
 //
 // Containers (except std::array)
@@ -52,10 +49,12 @@ DEFINE_TRACEABLE_CONTAINER(std::vector);
 template<typename E, size_t N>
 DEFINE_TRACEABLE(std::array<E, N>)
 {
-    DEFINE_TRACE(const std::array<E, N>& a)
+    CONTAINS_POINTERS_IF(::gc::contains_pointers<E>);
+    TO_TRACE(const std::array<E, N>& a)
     {
-        for (size_t i = 0; i < N; ++i)
-            TRACE(a[i]);
+        if (contains_pointers)
+            for (size_t i = 0; i < N; ++i)
+                TRACE(a[i]);
     }
 };
 
@@ -66,7 +65,8 @@ DEFINE_TRACEABLE(std::array<E, N>)
 template<typename K, typename V>
 DEFINE_TRACEABLE(std::pair<K, V>)
 {
-    DEFINE_TRACE(const std::pair<K, V>& p)
+    CONTAINS_POINTERS_IF(::gc::contains_pointers<K, V>);
+    TO_TRACE(const std::pair<K, V>& p)
     {
         TRACE(p.first);
         TRACE(p.second);
@@ -87,7 +87,7 @@ class TupleCountDown_
 
     using Next = TupleCountDown_<i - 1, T>;
 
-    DEFINE_TRACE(const T&p)
+    TO_TRACE(const T&p)
     {
         // This isn't infinite recursion because of the specialization below.
         Next::template trace<tracer_t>(p, tracer);
@@ -99,7 +99,7 @@ template<typename T>
 class TupleCountDown_<0, T>
 {
     friend class TupleCountDown_<1, T>;
-    DEFINE_TRACE(const T&) { }
+    TO_TRACE(const T&) { }
 };
 
 } // end namespace internal
@@ -110,7 +110,9 @@ DEFINE_TRACEABLE(std::tuple<E...>)
     using T     = std::tuple<E...>;
     using Start = internal::TupleCountDown_<std::tuple_size<T>::value, T>;
 
-    DEFINE_TRACE(const T& p)
+    CONTAINS_POINTERS_IF(::gc::contains_pointers<E...>);
+
+    TO_TRACE(const T& p)
     {
         Start::template trace<tracer_t>(p, tracer);
     }

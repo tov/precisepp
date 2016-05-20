@@ -105,7 +105,7 @@ private:
 template <typename T, typename Allocator>
 DEFINE_TRACEABLE(traced_ptr<T, Allocator>)
 {
-    DEFINE_TRACE(const traced_ptr<T, Allocator>& p)
+    TO_TRACE(const traced_ptr<T, Allocator>& p)
     {
         tracer(p.ptr_);
     }

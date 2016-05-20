@@ -25,33 +25,67 @@ void trace(T&& object, F tracer)
 
 } // end namespace internal
 
-#define DEFINE_TRACE(...) \
+#define CONTAINS_POINTERS_IF(...) \
+    static constexpr bool contains_pointers = __VA_ARGS__
+
+namespace internal
+{
+
+template <typename... Es>
+struct contains_pointers;
+
+template <typename E, typename... Es>
+struct contains_pointers<E, Es...>
+{
+    static constexpr bool value = ::gc::Traceable<E>::contains_pointers
+                                  || contains_pointers<Es...>::value;
+};
+
+template <>
+struct contains_pointers<>
+{
+    static constexpr bool value = false;
+};
+
+} // end namespace internal
+
+template <typename... Es>
+constexpr bool contains_pointers = internal::contains_pointers<Es...>::value;
+
+
+#define DEFINE_TRACEABLE(...) \
+    class ::gc::Traceable<__VA_ARGS__>
+
+#define TO_TRACE(...) \
     template <typename S__, typename F__>\
     friend void ::gc::internal::trace(S__&&, F__);\
     template <typename tracer_t>\
     static void trace(__VA_ARGS__, tracer_t tracer)
 
-#define DEFINE_TRACEABLE(...) \
-    class ::gc::Traceable<__VA_ARGS__>
-
 #define TRACE(...) \
     ::gc::internal::trace(__VA_ARGS__, tracer)
 
-#define DEFINE_TRACEABLE_UNTRACED(...) \
-    template <>\
+#define DEFINE_TRACEABLE_UNTRACED_T(...) \
     DEFINE_TRACEABLE(__VA_ARGS__) \
     {\
-        DEFINE_TRACE(__VA_ARGS__) {}\
+        CONTAINS_POINTERS_IF(false);\
+        TO_TRACE(__VA_ARGS__) { }\
     }
+
+#define DEFINE_TRACEABLE_UNTRACED(...) \
+    template <>\
+    DEFINE_TRACEABLE_UNTRACED_T(__VA_ARGS__);
 
 #define DEFINE_TRACEABLE_CONTAINER(C) \
     template <typename... E> \
     DEFINE_TRACEABLE(C<E...>)\
     {\
-        DEFINE_TRACE(const C<E...>& v)\
+        CONTAINS_POINTERS_IF(::gc::contains_pointers<E...>);\
+        TO_TRACE(const C<E...>& v)\
         {\
-            for (const auto& e : v) \
-                ::gc::internal::trace(e, tracer);\
+            if (contains_pointers)\
+                for (const auto& e : v)\
+                     TRACE(e);\
         }\
     }
 
