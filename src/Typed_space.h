@@ -229,6 +229,7 @@ private:
     // Stats interface – see comments in `Space`
     //
 
+public:
     virtual size_t element_size() const override
     {
         return sizeof(T);
@@ -264,7 +265,7 @@ template <typename T,
 traced_ptr<T, Allocator>
 make_traced(Args&&... args)
 {
-    auto space = Typed_space<T, Allocator>::instance();
+    auto& space = Typed_space<T, Allocator>::instance();
     return space.allocate(std::forward<Args>(args)...);
 }
 

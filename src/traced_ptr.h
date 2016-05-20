@@ -78,6 +78,11 @@ public:
         return get();
     }
 
+    void swap(traced_ptr& other)
+    {
+        std::swap(ptr_, other.ptr_);
+    }
+
 private:
     friend class Traceable<traced_ptr>;
     friend class Typed_space<T, Allocator>;
@@ -104,6 +109,12 @@ DEFINE_TRACEABLE(traced_ptr<T, Allocator>)
     {
         tracer(p.ptr_);
     }
+};
+
+template <typename T, typename Allocator>
+void swap(traced_ptr<T, Allocator>& a, traced_ptr<T, Allocator>& b)
+{
+    a.swap(b);
 };
 
 template <typename T1, typename Allocator1,
