@@ -24,7 +24,7 @@ namespace gc {
 // Some STL objects that don't contain pointers
 //
 
-DEFINE_TRACEABLE_POD(std::string);
+DEFINE_TRACEABLE_UNTRACED(std::string);
 
 template <size_t size>
 DEFINE_TRACEABLE(std::bitset<size>)
