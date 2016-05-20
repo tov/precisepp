@@ -17,7 +17,7 @@ namespace internal
 {
 
 template<typename T, typename F>
-void trace_(T&& object, F tracer)
+void trace(T&& object, F tracer)
 {
     Traceable<std::remove_cv_t<std::remove_reference_t<T>>>
         ::template trace<F>(std::forward<T>(object), tracer);
@@ -27,7 +27,7 @@ void trace_(T&& object, F tracer)
 
 #define DEFINE_TRACE(...) \
     template <typename S__, typename F__>\
-    friend void ::gc::internal::trace_(S__&&, F__);\
+    friend void ::gc::internal::trace(S__&&, F__);\
     template <typename tracer_t>\
     static void trace(__VA_ARGS__, tracer_t tracer)
 
@@ -35,7 +35,7 @@ void trace_(T&& object, F tracer)
     class ::gc::Traceable<__VA_ARGS__>
 
 #define TRACE(...) \
-    ::gc::internal::trace_(__VA_ARGS__, tracer)
+    ::gc::internal::trace(__VA_ARGS__, tracer)
 
 #define DEFINE_TRACEABLE_POD(...) \
     template <>\
@@ -51,7 +51,7 @@ void trace_(T&& object, F tracer)
         DEFINE_TRACE(const C<E...>& v)\
         {\
             for (const auto& e : v) \
-                ::gc::internal::trace_(e, tracer);\
+                ::gc::internal::trace(e, tracer);\
         }\
     }
 

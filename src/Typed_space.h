@@ -71,7 +71,7 @@ private:
             , free_list_{nullptr}
             , next_page_size_{initial_page_size}
     {
-        collector_.register_space_(*this);
+        collector_.register_space(*this);
     }
 
     // Adds a new page: Requests memory for `next_page_size_`
@@ -153,13 +153,13 @@ private:
         --live_size_;
     }
 
-    // The marking DFS, using `trace_` to find edges.
+    // The marking DFS, using `trace` to find edges.
     template <typename S>
     static void mark_recursively_(Traced<S>* ptr)
     {
         if (ptr != nullptr && !ptr->mark_) {
             ptr->mark_ = true;
-            ::gc::internal::trace_(ptr->object_(), [](auto sub_ptr) {
+            ::gc::internal::trace(ptr->object_(), [](auto sub_ptr) {
                 mark_recursively_(sub_ptr);
             });
         }
@@ -183,7 +183,7 @@ private:
     //
 
     // GC phase 1: Copies every ref_count_ to root_count_
-    virtual void save_counts_() override
+    virtual void save_counts() override
     {
         for_heap_([](ptr_t ptr) {
             ptr->root_count_() = ptr->ref_count_();
@@ -192,10 +192,10 @@ private:
 
     // GC phase 2: Decrements root_count_ for every in-edge coming from
     // another Traced object.
-    virtual void find_roots_() override
+    virtual void find_roots() override
     {
         for_heap_([](ptr_t ptr) {
-            ::gc::internal::trace_(ptr->object_(), [](auto sub_ptr) {
+            ::gc::internal::trace(ptr->object_(), [](auto sub_ptr) {
                 if (sub_ptr != nullptr)
                     --sub_ptr->root_count_();
             });
@@ -203,7 +203,7 @@ private:
     }
 
     // GC phase 3: Marks the live heap via tracing DFS.
-    virtual void mark_() override
+    virtual void mark() override
     {
         for_heap_([](ptr_t ptr) {
             if (ptr->root_count_() > 0)
@@ -212,7 +212,7 @@ private:
     }
 
     // GC phase 4: Sweeps away the dead heap, deallocating and resetting marks.
-    virtual void sweep_() override
+    virtual void sweep() override
     {
         for_heap_([this](ptr_t ptr) {
             if (ptr->mark_)
@@ -229,17 +229,17 @@ private:
     // Stats interface – see comments in `Space`
     //
 
-    virtual size_t element_size_() const override
+    virtual size_t element_size() const override
     {
         return sizeof(T);
     }
 
-    virtual size_t capacity_() const override
+    virtual size_t total_slots() const override
     {
         return heap_size_;
     }
 
-    virtual size_t used_() const override
+    virtual size_t used_slots() const override
     {
         return live_size_;
     }

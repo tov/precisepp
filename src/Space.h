@@ -27,32 +27,32 @@ class Space
     // then every space must run phase 2, etc. Here are the phases:
 
     // Phase 1: Copies every `Traced<T>`’s `ref_count_` to `root_count_`.
-    virtual void save_counts_()    =0;
+    virtual void save_counts()    =0;
 
     // Phase 2: Decrements `root_count_` for every in-edge coming from
     // another traced object. When finished, roots will have non-zero
     // `root_count_`.
-    virtual void find_roots_()     =0;
+    virtual void find_roots()     =0;
 
     // Phase 3: Marks the live heap starting with the roots found in the
     // previous phase.
-    virtual void mark_()           =0;
+    virtual void mark()           =0;
 
     // Phase 4: Sweeps away the dead heap, deallocating and resetting marks.
-    virtual void sweep_()          =0;
+    virtual void sweep()          =0;
 
 
     // Stats, currently unused.
 
     // The size of `T` for each `Space<T>`.
-    virtual size_t element_size_() const =0;
+    virtual size_t element_size() const =0;
 
     // The number of objects this `Space` can hold without growing.
-    virtual size_t capacity_() const     =0;
+    virtual size_t total_slots() const     =0;
 
     // Over-approximation of the number of live objects this `Space` currently
     // holds.
-    virtual size_t used_() const         =0;
+    virtual size_t used_slots() const         =0;
 
 protected:
     virtual ~Space() { }

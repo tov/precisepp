@@ -23,17 +23,17 @@ private:
 
     Collector();
 
-    void register_space_(internal::Space&);
+    void register_space(internal::Space&);
 
     template <typename F>
-    void for_spaces(F);
+    void for_spaces_(F);
 
     template <typename T, typename Allocator>
     friend class Typed_space;
 };
 
 template <typename F>
-void Collector::for_spaces(F f)
+void Collector::for_spaces_(F f)
 {
     for (internal::Space* space : spaces_)
         f(space);
