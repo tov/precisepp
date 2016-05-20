@@ -17,6 +17,9 @@
 
 namespace gc {
 
+static constexpr size_t initial_page_size = 16;
+static constexpr double max_live_ratio    = 0.75;
+
 template <typename T, typename Allocator>
 class Typed_space : private internal::Space
 {
@@ -55,6 +58,7 @@ private:
     size_t live_size_;      // The number of used slots
     Traced<T>* pages_;      // Linked list of pages to allocate in
     Traced<T>* free_list_;  // Linked list of free object slots
+    size_t next_page_size_; // How big the next page should be
 
     // Constructs a `Typed_space`, which includes registering it with a
     // collector. By default it uses the default (global) collector. (There is
@@ -65,6 +69,7 @@ private:
             , live_size_{0}
             , pages_{nullptr}
             , free_list_{nullptr}
+            , next_page_size_{initial_page_size}
     {
         collector_.register_space_(*this);
     }
@@ -72,16 +77,17 @@ private:
     // Adds a page that can hold `size` objects: Requests memory for the
     // objects from the allocator, adds its slots to the free list, and
     // adds the new page to the front of the page list.
-    void add_page_(size_t size)
+    void add_page_()
     {
-        ptr_t page = allocator_.allocate(size);
-        page[0].initialize_header_(size, pages_);
+        ptr_t page = allocator_.allocate(next_page_size_);
+        page[0].initialize_header_(next_page_size_, pages_);
         pages_ = page;
 
-        for (size_t i = 1; i < size; ++i)
+        for (size_t i = 1; i < next_page_size_; ++i)
             add_to_free_list_(&page[i]);
 
-        heap_size_ += size - 1;
+        heap_size_ += next_page_size_ - 1;
+        next_page_size_ *= 2;
     }
 
     // Adds the given pointer to the free list.
@@ -91,14 +97,12 @@ private:
         free_list_ = ptr;
     }
 
-    static constexpr size_t initial_page_size = 16;
-
     template<typename... Args>
     ptr_t allocate_(Args&& ... args)
     {
         if (free_list_ == nullptr) {
             if (pages_ == nullptr) {
-                add_page_(initial_page_size);
+                add_page_();
             } else {
                 collector_.collect();
             }
@@ -199,6 +203,9 @@ private:
             else
                 deallocate_(ptr);
         });
+
+        if (double(live_size_) / heap_size_ > max_live_ratio)
+            add_page_();
     }
 
     //
