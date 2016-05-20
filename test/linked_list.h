@@ -9,12 +9,8 @@ class node
 public:
     using link_t = gc::traced_ptr<node<T>>;
 
-    node(const T& first, link_t rest)
+    node(T first, link_t rest)
             : first_{first}, rest_{rest}
-    { }
-
-    node(T&& first, link_t rest)
-            : first_{std::move(first)}, rest_{rest}
     { }
 
     const T& first() const { return first_; }

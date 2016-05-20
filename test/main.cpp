@@ -20,7 +20,7 @@ int main()
     auto c = cons(5, cons(6, cons(7, nullptr)));
 
     for (int i = 0; i < 100; ++i) {
-        c = cons(0, c);
+        c = cons((int&) i, c);
     }
     collect();
 
