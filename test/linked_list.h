@@ -39,15 +39,8 @@ template <typename T>
 using list = typename node<T>::link_t;
 
 template <typename T>
-list<T> cons(const T& first, list<T> rest)
+list<T> cons(T first, list<T> rest)
 {
     return gc::make_traced<node<T>>(first, rest);
 }
-
-template <typename T>
-list<T> cons(T&& first, list<T> rest)
-{
-    return gc::make_traced<node<T>>(std::move(first), rest);
-}
-
 

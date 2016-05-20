@@ -24,3 +24,5 @@ set(SOURCE_FILES
 add_executable(precisepp ${SOURCE_FILES})
 set_property(TARGET precisepp PROPERTY CXX_STANDARD 14)
 set_property(TARGET precisepp PROPERTY CXX_STANDARD_REQUIRED On)
+
+
