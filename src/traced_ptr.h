@@ -19,6 +19,9 @@ template <typename T, typename Allocator>
 class traced_ptr
 {
 public:
+    using element_type = T;
+    using pointer      = T*;
+
     traced_ptr() : ptr_{nullptr}
     { }
 
@@ -55,24 +58,24 @@ public:
         dec_();
     }
 
-    T& operator*()
+    operator bool()
     {
-        return ptr_->object_();
+        return ptr_ != nullptr;
     }
 
-    const T& operator*() const
-    {
-        return ptr_->object_();
-    }
-
-    T* operator->()
+    pointer get() const
     {
         return &ptr_->object_();
     }
 
-    const T* operator->() const
+    element_type& operator*() const
     {
-        return &ptr_->object_();
+        return ptr_->object_();
+    }
+
+    pointer operator->() const
+    {
+        return get();
     }
 
 private:
@@ -101,6 +104,132 @@ DEFINE_TRACEABLE(traced_ptr<T, Allocator>)
     {
         tracer(p.ptr_);
     }
+};
+
+template <typename T1, typename Allocator1,
+          typename T2, typename Allocator2>
+bool operator==(const traced_ptr<T1, Allocator1>& a,
+                const traced_ptr<T2, Allocator2>& b)
+{
+    return a.get() == b.get();
+};
+
+template <typename T1, typename Allocator1,
+          typename T2, typename Allocator2>
+bool operator!=(const traced_ptr<T1, Allocator1>& a,
+                const traced_ptr<T2, Allocator2>& b)
+{
+    return a.get() != b.get();
+};
+
+template <typename T1, typename Allocator1,
+          typename T2, typename Allocator2>
+bool operator<(const traced_ptr<T1, Allocator1>& a,
+               const traced_ptr<T2, Allocator2>& b)
+{
+    // From unique_ptr:
+    using CT = typename
+      std::common_type<typename traced_ptr<T1, Allocator1>::pointer,
+                       typename traced_ptr<T2, Allocator2>::pointer>::type;
+    return std::less<CT>(a.get(), b.get());
+};
+
+template <typename T1, typename Allocator1,
+        typename T2, typename Allocator2>
+bool operator<=(const traced_ptr<T1, Allocator1>& a,
+                const traced_ptr<T2, Allocator2>& b)
+{
+    return !(b < a);
+};
+
+template <typename T1, typename Allocator1,
+        typename T2, typename Allocator2>
+bool operator>(const traced_ptr<T1, Allocator1>& a,
+               const traced_ptr<T2, Allocator2>& b)
+{
+    return b < a;
+};
+
+template <typename T1, typename Allocator1,
+        typename T2, typename Allocator2>
+bool operator>=(const traced_ptr<T1, Allocator1>& a,
+                const traced_ptr<T2, Allocator2>& b)
+{
+    return !(a < b);
+};
+
+template <typename T, typename Allocator>
+bool operator==(std::nullptr_t, const traced_ptr<T, Allocator>& b)
+{
+    return nullptr == b.get();
+};
+
+template <typename T, typename Allocator>
+bool operator==(const traced_ptr<T, Allocator>& a, std::nullptr_t)
+{
+    return a.get() == nullptr;
+};
+
+template <typename T, typename Allocator>
+bool operator!=(std::nullptr_t, const traced_ptr<T, Allocator>& b)
+{
+    return nullptr != b.get();
+};
+
+template <typename T, typename Allocator>
+bool operator!=(const traced_ptr<T, Allocator>& a, std::nullptr_t)
+{
+    return a.get() != nullptr;
+};
+
+template <typename T, typename Allocator>
+bool operator<(std::nullptr_t, const traced_ptr<T, Allocator>& b)
+{
+    using param = typename traced_ptr<T, Allocator>::pointer;
+    return std::less<param>()(nullptr, b.get());
+};
+
+template <typename T, typename Allocator>
+bool operator<(const traced_ptr<T, Allocator>& a, std::nullptr_t)
+{
+    using param = typename traced_ptr<T, Allocator>::pointer;
+    return std::less<param>()(a.get(), nullptr);
+};
+
+template <typename T, typename Allocator>
+bool operator<=(std::nullptr_t, const traced_ptr<T, Allocator>& b)
+{
+    return !(b < nullptr);
+};
+
+template <typename T, typename Allocator>
+bool operator<=(const traced_ptr<T, Allocator>& a, std::nullptr_t)
+{
+    return !(nullptr < a);
+};
+
+template <typename T, typename Allocator>
+bool operator>(std::nullptr_t, const traced_ptr<T, Allocator>& b)
+{
+    return b < nullptr;
+};
+
+template <typename T, typename Allocator>
+bool operator>(const traced_ptr<T, Allocator>& a, std::nullptr_t)
+{
+    return nullptr < a;
+};
+
+template <typename T, typename Allocator>
+bool operator>=(std::nullptr_t, const traced_ptr<T, Allocator>& b)
+{
+    return !(nullptr < b);
+};
+
+template <typename T, typename Allocator>
+bool operator>=(const traced_ptr<T, Allocator>& a, std::nullptr_t)
+{
+    return !(a < nullptr);
 };
 
 } // end namespace gc
