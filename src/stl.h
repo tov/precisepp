@@ -4,11 +4,13 @@
 
 #include "Traceable.h"
 
+#include <bitset>
 #include <deque>
 #include <forward_list>
 #include <list>
 #include <map>
 #include <set>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -17,6 +19,18 @@
 #include <tuple>
 
 namespace gc {
+
+//
+// Some STL objects that don't contain pointers
+//
+
+DEFINE_TRACEABLE_POD(std::string);
+
+template <size_t size>
+DEFINE_TRACEABLE(std::bitset<size>)
+{
+    DEFINE_TRACE(const std::bitset<size>&) {}
+};
 
 //
 // Containers (except std::array)
