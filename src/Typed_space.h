@@ -31,7 +31,7 @@ public:
         return instance_;
     }
 
-    // Allocates an object of type `T` given parameters to forward to its
+    // Allocates an object of type `T` given arguments to forward to its
     // constructor.
     template <typename... Args>
     traced_ptr<T, Allocator>
@@ -74,9 +74,10 @@ private:
         collector_.register_space_(*this);
     }
 
-    // Adds a page that can hold `size` objects: Requests memory for the
+    // Adds a new page: Requests memory for `next_page_size_`
     // objects from the allocator, adds its slots to the free list, and
-    // adds the new page to the front of the page list.
+    // adds the new page to the front of the page list. Doubles the size for
+    // next time.
     void add_page_()
     {
         ptr_t page = allocator_.allocate(next_page_size_);
@@ -97,9 +98,15 @@ private:
         free_list_ = ptr;
     }
 
+    // Allocates and initializes an object, given arguments to forward to its
+    // constructor. Looks for a slot on the free list first, and then
+    // collects if necessary.
     template<typename... Args>
     ptr_t allocate_(Args&& ... args)
     {
+        // If the free list is empty, we either need to create the first page
+        // or run the collector. Either way, the free list should no longer
+        // be null.
         if (free_list_ == nullptr) {
             if (pages_ == nullptr) {
                 add_page_();
@@ -107,37 +114,46 @@ private:
                 collector_.collect();
             }
 
-            assert(free_list_ != nullptr);
+            if (free_list_ == nullptr)
+                throw std::bad_alloc{};
+            // Is this the wrong place to do this? Maybe we should be
+            // asserting instead, and letting `add_page_` throw if necessary.
         }
 
+        // Grab a slot from the free list.
         ptr_t result = free_list_;
         free_list_   = free_list_->next_free_();
 
+        // Initialize the slot metadata.
         result->initialize_used_();
 
+        // Now try initializing the object. If the constructor throws we put
+        // the slot back on the free list and re-throw. (Do we really want to do
+        // a try-catch on every allocation? It might be better to a) leak, or
+        // b) use a commit protocol that leaves things in a recoverable state?)
         try {
             ::new(&result->object_()) T(std::forward<Args>(args)...);
         } catch (...) {
-            result->initialize_free_(free_list_);
-            free_list_ = result;
+            add_to_free_list_(result);
             throw;
         }
 
+        // Allocation success!
         ++live_size_;
 
         return result;
     }
 
+    // Deallocates the pointed-to object, running its destructor and adding
+    // its slot to the free list.
     void deallocate_(ptr_t ptr)
     {
         ptr->object_().~T();
-
-        ptr->initialize_free_(free_list_);
-        free_list_ = ptr;
-
+        add_to_free_list_(ptr);
         --live_size_;
     }
 
+    // The marking DFS, using `trace_` to find edges.
     template <typename S>
     static void mark_recursively_(Traced<S>* ptr)
     {
@@ -149,6 +165,7 @@ private:
         }
     }
 
+    // Calls the given function on each used `Traced<T>*` in the heap.
     template <typename F>
     void for_heap_(F f)
     {
