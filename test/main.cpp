@@ -17,10 +17,11 @@ void collect()
 
 int main()
 {
-    collect();
     auto c = cons(5, cons(6, cons(7, nullptr)));
-    collect();
-    c->rest()->rest()->rest() = c;
+
+    for (int i = 0; i < 100; ++i) {
+        c = cons(0, c);
+    }
     collect();
 
     c = nullptr;
