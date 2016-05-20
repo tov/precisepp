@@ -17,7 +17,7 @@
 
 namespace gc {
 
-template <typename T, typename Allocator, typename PAllocator>
+template <typename T, typename Allocator>
 class TypedSpace : private internal::Space
 {
 public:
@@ -31,10 +31,10 @@ public:
     // Allocates an object of type `T` given parameters to forward to its
     // constructor.
     template <typename... Args>
-    traced_ptr<T, Allocator, PAllocator>
+    traced_ptr<T, Allocator>
     allocate(Args&&... args)
     {
-        traced_ptr<T, Allocator, PAllocator> result;
+        traced_ptr<T, Allocator> result;
         result.ptr_ = allocate_(std::forward<Args>(args)...);
         result.inc_();
         return result;
@@ -48,8 +48,6 @@ private:
     // allocate the right type.
     static_assert(std::is_same<traced<T>, typename Allocator::value_type>::value,
                   "Invalid Allocator");
-    static_assert(std::is_same<traced<T>*, typename PAllocator::value_type>::value,
-                  "Invalid PAllocator");
 
     Allocator allocator_;   // For allocating pages of `traced<T>`s
     Collector& collector_;  // The collector managing this space
@@ -59,8 +57,8 @@ private:
     traced<T>* free_list_;  // Linked list of free object slots
 
     // Constructs a `TypedSpace`, which includes registering it with a
-    // collector. By default it uses the global collector. (There is
-    // currently nothing useful we can do with non-global spaces/collectors.)
+    // collector. By default it uses the default (global) collector. (There is
+    // currently nothing useful we can do with non-default spaces/collectors.)
     TypedSpace(Collector& collector = Collector::instance())
             : collector_{collector}
             , heap_size_{0}
@@ -98,10 +96,14 @@ private:
     template<typename... Args>
     ptr_t allocate_(Args&& ... args)
     {
-        if (pages_ == nullptr) {
-            add_page_(initial_page_size);
-        } else if (free_list_ == nullptr) {
-            assert(false);
+        if (free_list_ == nullptr) {
+            if (pages_ == nullptr) {
+                add_page_(initial_page_size);
+            } else {
+                collector_.collect();
+            }
+
+            assert(free_list_ != nullptr);
         }
 
         ptr_t result = free_list_;
@@ -216,17 +218,27 @@ private:
     }
 };
 
-// Allocates an object of type `T` given parameters to forward to its
-// constructor.
+// Allocates an object of type `T` in the default space, given parameters to
+// forward to its constructor.
 template <typename T,
           typename Allocator  = std::allocator<traced<T>>,
-          typename PAllocator = std::allocator<traced<T>*>,
           typename... Args>
-traced_ptr<T, Allocator, PAllocator>
+traced_ptr<T, Allocator>
+make_traced_in(TypedSpace<T, Allocator>& space, Args&&... args)
+{
+    return space.allocate(std::forward<Args>(args)...);
+}
+
+// Allocates an object of type `T` given a space to allocate in and parameters
+// to forward to its constructor.
+template <typename T,
+          typename Allocator  = std::allocator<traced<T>>,
+          typename... Args>
+traced_ptr<T, Allocator>
 make_traced(Args&&... args)
 {
-    return TypedSpace<T, Allocator, PAllocator>::instance()
-             .allocate(std::forward<Args>(args)...);
+    auto space = TypedSpace<T, Allocator>::instance();
+    return space.allocate(std::forward<Args>(args)...);
 }
 
 } // end namespace gc

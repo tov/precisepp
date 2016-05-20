@@ -27,7 +27,7 @@ private:
     template <typename F>
     void for_spaces(F);
 
-    template <typename T, typename Allocator, typename PAllocator>
+    template <typename T, typename Allocator>
     friend class TypedSpace;
 };
 

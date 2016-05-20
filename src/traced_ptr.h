@@ -15,7 +15,7 @@
 namespace gc
 {
 
-template <typename T, typename Allocator, typename PAllocator>
+template <typename T, typename Allocator>
 class traced_ptr
 {
 public:
@@ -77,7 +77,7 @@ public:
 
 private:
     friend class Traceable<traced_ptr>;
-    friend class TypedSpace<T, Allocator, PAllocator>;
+    friend class TypedSpace<T, Allocator>;
 
     traced<T>* ptr_;
 
@@ -94,10 +94,10 @@ private:
     }
 };
 
-template <typename T, typename Allocator, typename PAllocator>
-DEFINE_TRACEABLE(traced_ptr<T, Allocator, PAllocator>)
+template <typename T, typename Allocator>
+DEFINE_TRACEABLE(traced_ptr<T, Allocator>)
 {
-    DEFINE_TRACE(const traced_ptr<T, Allocator, PAllocator>& p)
+    DEFINE_TRACE(const traced_ptr<T, Allocator>& p)
     {
         tracer(p.ptr_);
     }
