@@ -1,5 +1,5 @@
 // Space is the interface between the TypedSpace<T>s and the
-// Collector. Each TypedSpace<T> manages only objects of type T,
+// Collector. Each Typed_space<T> manages only objects of type T,
 // but to collect properly we need to mark the whole pointer graph
 // (unless we can prove disjointness!). Thus, we provide this
 // interface to the Collector, and it then makes the spaces cooperate.
@@ -26,7 +26,7 @@ class Space
     // run for each space in turn; that is, every space must run phase 1,
     // then every space must run phase 2, etc. Here are the phases:
 
-    // Phase 1: Copies every `traced<T>`’s `ref_count_` to `root_count_`.
+    // Phase 1: Copies every `Traced<T>`’s `ref_count_` to `root_count_`.
     virtual void save_counts_()    =0;
 
     // Phase 2: Decrements `root_count_` for every in-edge coming from

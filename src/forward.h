@@ -8,15 +8,15 @@ namespace gc
 {
 
 template <typename T>
-class traced;
+class Traced;
 
 template <typename T,
-          typename Allocator = std::allocator<traced<T>>>
+          typename Allocator = std::allocator<Traced<T>>>
 class traced_ptr;
 
 template <typename T,
-          typename Allocator = std::allocator<traced<T>>>
-class TypedSpace;
+          typename Allocator = std::allocator<Traced<T>>>
+class Typed_space;
 
 
 } // end namespace gc

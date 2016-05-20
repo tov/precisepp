@@ -4,7 +4,7 @@
 
 #include "forward.h"
 #include "Traceable.h"
-#include "traced.h"
+#include "Traced.h"
 
 #include <utility>
 #include <unordered_set>
@@ -77,9 +77,9 @@ public:
 
 private:
     friend class Traceable<traced_ptr>;
-    friend class TypedSpace<T, Allocator>;
+    friend class Typed_space<T, Allocator>;
 
-    traced<T>* ptr_;
+    Traced<T>* ptr_;
 
     void inc_()
     {

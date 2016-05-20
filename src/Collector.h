@@ -1,5 +1,5 @@
 // The CollectorManager holds a pointer to each Collector<T>, and when a
-// collection happens it has each TypedSpace<T> execute each phase.
+// collection happens it has each Typed_space<T> execute each phase.
 #pragma once
 
 #include "Space.h"
@@ -28,7 +28,7 @@ private:
     void for_spaces(F);
 
     template <typename T, typename Allocator>
-    friend class TypedSpace;
+    friend class Typed_space;
 };
 
 template <typename F>

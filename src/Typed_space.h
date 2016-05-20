@@ -1,11 +1,11 @@
-// A `TypedSpace<T>` manages the pointers of one type, `T`. It implements the
+// A `Typed_space<T>` manages the pointers of one type, `T`. It implements the
 // interface `Space`, which the `Collector` uses to manage it.
 #pragma once
 
 #include "forward.h"
 #include "Space.h"
 #include "Collector.h"
-#include "traced.h"
+#include "Traced.h"
 #include "traced_ptr.h"
 #include "Traceable.h"
 
@@ -18,13 +18,13 @@
 namespace gc {
 
 template <typename T, typename Allocator>
-class TypedSpace : private internal::Space
+class Typed_space : private internal::Space
 {
 public:
     // Returns the singleton instance for allocating objects of type `T`.
-    static TypedSpace& instance() noexcept
+    static Typed_space& instance() noexcept
     {
-        static TypedSpace instance_;
+        static Typed_space instance_;
         return instance_;
     }
 
@@ -42,24 +42,24 @@ public:
 
 private:
     // The type of pointer we are managing.
-    using ptr_t = traced<T>*;
+    using ptr_t = Traced<T>*;
 
     // Produces a friendly error if the given allocator doesn’t actually
     // allocate the right type.
-    static_assert(std::is_same<traced<T>, typename Allocator::value_type>::value,
+    static_assert(std::is_same<Traced<T>, typename Allocator::value_type>::value,
                   "Invalid Allocator");
 
-    Allocator allocator_;   // For allocating pages of `traced<T>`s
+    Allocator allocator_;   // For allocating pages of `Traced<T>`s
     Collector& collector_;  // The collector managing this space
     size_t heap_size_;      // The capacity of this space, in objects
     size_t live_size_;      // The number of used slots
-    traced<T>* pages_;      // Linked list of pages to allocate in — unused!
-    traced<T>* free_list_;  // Linked list of free object slots
+    Traced<T>* pages_;      // Linked list of pages to allocate in
+    Traced<T>* free_list_;  // Linked list of free object slots
 
-    // Constructs a `TypedSpace`, which includes registering it with a
+    // Constructs a `Typed_space`, which includes registering it with a
     // collector. By default it uses the default (global) collector. (There is
     // currently nothing useful we can do with non-default spaces/collectors.)
-    TypedSpace(Collector& collector = Collector::instance())
+    Typed_space(Collector& collector = Collector::instance())
             : collector_{collector}
             , heap_size_{0}
             , live_size_{0}
@@ -109,8 +109,10 @@ private:
         ptr_t result = free_list_;
         free_list_   = free_list_->next_free_();
 
+        result->initialize_used_();
+
         try {
-            result->initialize_used_(std::forward<Args>(args)...);
+            ::new(&result->object_()) T(std::forward<Args>(args)...);
         } catch (...) {
             result->initialize_free_(free_list_);
             free_list_ = result;
@@ -125,6 +127,7 @@ private:
     void deallocate_(ptr_t ptr)
     {
         ptr->object_().~T();
+
         ptr->initialize_free_(free_list_);
         free_list_ = ptr;
 
@@ -132,7 +135,7 @@ private:
     }
 
     template <typename S>
-    static void mark_recursively_(traced<S>* ptr)
+    static void mark_recursively_(Traced<S>* ptr)
     {
         if (ptr != nullptr && !ptr->mark_) {
             ptr->mark_ = true;
@@ -167,7 +170,7 @@ private:
     }
 
     // GC phase 2: Decrements root_count_ for every in-edge coming from
-    // another traced object.
+    // another Traced object.
     virtual void find_roots_() override
     {
         for_heap_([](ptr_t ptr) {
@@ -221,10 +224,10 @@ private:
 // Allocates an object of type `T` in the default space, given parameters to
 // forward to its constructor.
 template <typename T,
-          typename Allocator  = std::allocator<traced<T>>,
+          typename Allocator  = std::allocator<Traced<T>>,
           typename... Args>
 traced_ptr<T, Allocator>
-make_traced_in(TypedSpace<T, Allocator>& space, Args&&... args)
+make_traced_in(Typed_space<T, Allocator>& space, Args&&... args)
 {
     return space.allocate(std::forward<Args>(args)...);
 }
@@ -232,12 +235,12 @@ make_traced_in(TypedSpace<T, Allocator>& space, Args&&... args)
 // Allocates an object of type `T` given a space to allocate in and parameters
 // to forward to its constructor.
 template <typename T,
-          typename Allocator  = std::allocator<traced<T>>,
+          typename Allocator  = std::allocator<Traced<T>>,
           typename... Args>
 traced_ptr<T, Allocator>
 make_traced(Args&&... args)
 {
-    auto space = TypedSpace<T, Allocator>::instance();
+    auto space = Typed_space<T, Allocator>::instance();
     return space.allocate(std::forward<Args>(args)...);
 }
 

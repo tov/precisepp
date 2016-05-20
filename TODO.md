@@ -3,7 +3,7 @@
  - Track heap and allocation statistics.
  - Have it figure out when to collect based on stats.
  
- - Store traced<T>s in a doubly-linked list rather than a set
+ - Store Traced<T>s in a doubly-linked list rather than a set
  - Or: Switch back to arena allocation, using a free-list.
  
  - Allow multiple Collectors. One per thread?
