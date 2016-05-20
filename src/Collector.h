@@ -1,5 +1,6 @@
-// The CollectorManager holds a pointer to each Collector<T>, and when a
-// collection happens it has each Typed_space<T> execute each phase.
+// The `Collector` holds a pointer to each `Typed_space<T>` (via the
+// interface `Space`). When a collection happens it has each space execute
+// each phase in turn.
 #pragma once
 
 #include "Space.h"
