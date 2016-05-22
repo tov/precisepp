@@ -5,6 +5,7 @@
 #include "forward.h"
 #include "Space.h"
 #include "Collector.h"
+#include "logger.h"
 #include "Traced.h"
 #include "traced_ptr.h"
 #include "Traceable.h"
@@ -17,7 +18,7 @@
 
 namespace gc {
 
-static constexpr size_t initial_page_size = 16;
+static constexpr size_t initial_page_size = 1024;
 static constexpr double max_live_ratio    = 0.75;
 
 template <typename T, typename Allocator>
@@ -80,7 +81,14 @@ private:
     // next time.
     void add_page_()
     {
+        log(debug2) << "add_page_()";
+        log(debug3) << "next_page_size_ = " << next_page_size_;
+
         ptr_t page = allocator_.allocate(next_page_size_);
+        if (page == nullptr) throw std::bad_alloc{};
+
+        log(debug4) << "allocation success!";
+
         page[0].initialize_header_(next_page_size_, pages_);
         pages_ = page;
 
@@ -89,6 +97,8 @@ private:
 
         heap_size_ += next_page_size_ - 1;
         next_page_size_ *= 2;
+
+        log(debug2) << "heap_size_ = " << heap_size_;
     }
 
     // Adds the given pointer to the free list.
@@ -104,20 +114,23 @@ private:
     template<typename... Args>
     ptr_t allocate_(Args&& ... args)
     {
+        log(debug4) << "allocate_(" << sizeof(decltype(T(args...))) << " bytes)";
         // If the free list is empty, we either need to create the first page
         // or run the collector. Either way, the free list should no longer
         // be null.
         if (free_list_ == nullptr) {
+            log(debug2) << "allocate_: free_list == nullptr";
             if (pages_ == nullptr) {
+                log(debug2) << "allocate_: pages_ == nullptr";
                 add_page_();
             } else {
+                log(debug2) << "allocate_: going to collect";
                 collector_.collect();
             }
 
-            if (free_list_ == nullptr)
-                throw std::bad_alloc{};
-            // Is this the wrong place to do this? Maybe we should be
-            // asserting instead, and letting `add_page_` throw if necessary.
+            log(debug2) << "pages_ == " << pages_ << ", free_list_ == " << free_list_;
+
+            assert(free_list_ != nullptr);
         }
 
         // Grab a slot from the free list.
@@ -141,6 +154,9 @@ private:
         // Allocation success!
         ++live_size_;
 
+        log(debug4) << "allocate() == " << &result->object_()
+                    << " (live_size_ == " << live_size_ << ")";
+
         return result;
     }
 
@@ -157,22 +173,31 @@ private:
     template <typename S>
     static void mark_recursively_(Traced<S>* ptr)
     {
+        log(debug4) << "mark_recursively_(" << ptr << ")";
         if (ptr != nullptr && !ptr->mark_) {
             ptr->mark_ = true;
             ::gc::internal::trace(ptr->object_(), [](auto sub_ptr) {
                 mark_recursively_(sub_ptr);
             });
         }
+        log(debug4) << "end mark_recursively_(" << ptr << ")";
     }
 
     // Calls the given function on each used `Traced<T>*` in the heap.
     template <typename F>
     void for_heap_(F f)
     {
-        for (ptr_t page = pages_; page != nullptr; page = page->next_page_())
-            for (size_t i = 1; i < page->page_size_(); ++i)
+        log(debug1) << "for_heap_()";
+        for (ptr_t page = pages_; page != nullptr; page = page->next_page_()) {
+            log(debug2) << "page " << page
+                        << " (size " << page->page_size_() << ")";
+            for (size_t i = 1; i < page->page_size_(); ++i) {
+                log(debug4) << &page[i]
+                            << (page[i].free_ ? " (free)" : " (used)");
                 if (!page[i].free_)
                     f(&page[i]);
+            }
+        }
     }
 
     // The remaining member functions are implementations of Space’s pure

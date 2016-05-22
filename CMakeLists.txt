@@ -1,12 +1,15 @@
 cmake_minimum_required(VERSION 3.3)
 project(precisepp CXX)
 
+include_directories(src)
+
 set(GC_HEADERS
         src/Typed_space.h
         src/Space.h
         src/Collector.h
         src/forward.h
         src/gc.h
+        src/logger.h
         src/stl.h
         src/Traceable.h
         src/Traced.h
@@ -14,6 +17,7 @@ set(GC_HEADERS
 
 set(GC_LIB
         src/Collector.cpp
+        src/logging.cpp
         ${GC_HEADERS})
 
 set(SOURCE_FILES

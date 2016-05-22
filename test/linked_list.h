@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../src/gc.h"
+#include "gc.h"
 #include <utility>
 
 template <typename T>
@@ -28,6 +28,7 @@ private:
 
 template <typename T>
 DEFINE_TRACEABLE(node<T>) {
+    CONTAINS_POINTERS_IF(true);
     TO_TRACE(const node<T>& n)
     {
         TRACE(n.first_);

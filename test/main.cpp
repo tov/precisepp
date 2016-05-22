@@ -1,4 +1,4 @@
-#include "../src/gc.h"
+#include "gc.h"
 #include "linked_list.h"
 
 #include <iostream>
@@ -15,16 +15,17 @@ void collect()
     std::cerr << ", L = " << space.used_slots() << "\n\n";
 }
 
+
 int main()
 {
-    auto c = cons(5, cons(6, cons(7, nullptr)));
+    list<int> c = nullptr;
 
-    for (int i = 0; i < 100; ++i) {
+    for (int i = 0; i < 165508; ++i) {
+        std::cerr << i << std::endl;
         c = cons((int) i, c);
     }
-    collect();
 
-    c = nullptr;
-    auto d = cons(5, nullptr);
-    collect();
+    c = cons(0, c);
+
+    // collect();
 }
