@@ -34,7 +34,7 @@ public:
         inc_();
     }
 
-    traced_ptr(traced_ptr&& other)
+    traced_ptr(traced_ptr&& other) noexcept
     {
         std::swap(ptr_, other.ptr_);
     }
@@ -47,7 +47,7 @@ public:
         return *this;
     }
 
-    traced_ptr& operator=(traced_ptr&& other)
+    traced_ptr& operator=(traced_ptr&& other) noexcept
     {
         std::swap(ptr_, other.ptr_);
         return *this;
