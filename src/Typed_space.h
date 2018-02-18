@@ -208,7 +208,7 @@ private:
     //
 
     // GC phase 1: Copies every ref_count_ to root_count_
-    virtual void save_counts() override
+    void save_counts() override
     {
         for_heap_([](ptr_t ptr) {
             ptr->root_count_() = ptr->ref_count_();
@@ -217,7 +217,7 @@ private:
 
     // GC phase 2: Decrements root_count_ for every in-edge coming from
     // another Traced object.
-    virtual void find_roots() override
+    void find_roots() override
     {
         for_heap_([](ptr_t ptr) {
             ::gc::internal::trace(ptr->object_(), [](auto sub_ptr) {
@@ -228,7 +228,7 @@ private:
     }
 
     // GC phase 3: Marks the live heap via tracing DFS.
-    virtual void mark() override
+    void mark() override
     {
         for_heap_([](ptr_t ptr) {
             if (ptr->root_count_() > 0)
@@ -237,7 +237,7 @@ private:
     }
 
     // GC phase 4: Sweeps away the dead heap, deallocating and resetting marks.
-    virtual void sweep() override
+    void sweep() override
     {
         for_heap_([this](ptr_t ptr) {
             if (ptr->mark_)
@@ -255,17 +255,17 @@ private:
     //
 
 public:
-    virtual size_t element_size() const override
+    size_t element_size() const override
     {
         return sizeof(T);
     }
 
-    virtual size_t total_slots() const override
+    size_t total_slots() const override
     {
         return heap_size_;
     }
 
-    virtual size_t used_slots() const override
+    size_t used_slots() const override
     {
         return live_size_;
     }

@@ -48,11 +48,11 @@ class Space
     virtual size_t element_size() const =0;
 
     // The number of objects this `Space` can hold without growing.
-    virtual size_t total_slots() const     =0;
+    virtual size_t total_slots() const =0;
 
     // Over-approximation of the number of live objects this `Space` currently
     // holds.
-    virtual size_t used_slots() const         =0;
+    virtual size_t used_slots() const =0;
 
 protected:
     virtual ~Space() = default;
