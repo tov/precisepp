@@ -15,6 +15,8 @@
 #include <unordered_set>
 #include <vector>
 
+#include <memory>
+
 #include <array>
 #include <tuple>
 
@@ -28,6 +30,42 @@ DEFINE_TRACEABLE_UNTRACED(std::string);
 
 template <size_t size>
 DEFINE_TRACEABLE_UNTRACED_T(std::bitset<size>);
+
+//
+// Smart pointers
+//
+
+template<typename T, typename Deleter>
+DEFINE_TRACEABLE(std::unique_ptr<T, Deleter>)
+{
+    CONTAINS_POINTERS_IF(::gc::contains_pointers<T>);
+    TO_TRACE(const std::unique_ptr<T, Deleter>& p)
+    {
+        TRACE(*p);
+    }
+};
+
+template<typename T>
+DEFINE_TRACEABLE(std::shared_ptr<T>)
+{
+    CONTAINS_POINTERS_IF(::gc::contains_pointers<T>);
+    TO_TRACE(const std::shared_ptr<T>& p)
+    {
+        TRACE(*p);
+    }
+};
+
+template<typename T>
+DEFINE_TRACEABLE(std::weak_ptr<T>)
+{
+    CONTAINS_POINTERS_IF(::gc::contains_pointers<T>);
+    TO_TRACE(const std::weak_ptr<T>& p)
+    {
+        if (!p.expired()) {
+            TRACE(*p.lock());
+        }
+    }
+};
 
 //
 // Containers (except std::array)

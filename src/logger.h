@@ -32,7 +32,7 @@ class Log_it
     std::ostringstream buffer_;
 
 public:
-    Log_it(log_level_t level = log_level_t::error) {
+    explicit Log_it(log_level_t level = log_level_t::error) {
         buffer_ << std::setw(7) << level << ':';
         buffer_ <<
             std::string(level > log_level_t::debug

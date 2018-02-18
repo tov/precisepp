@@ -3,3 +3,4 @@ build/
 
 # Ignore CLion stuff
 .idea/
+cmake-build-debug/

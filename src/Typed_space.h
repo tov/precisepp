@@ -64,7 +64,7 @@ private:
     // Constructs a `Typed_space`, which includes registering it with a
     // collector. By default it uses the default (global) collector. (There is
     // currently nothing useful we can do with non-default spaces/collectors.)
-    Typed_space(Collector& collector = Collector::instance())
+    explicit Typed_space(Collector& collector = Collector::instance())
             : collector_{collector}
             , heap_size_{0}
             , live_size_{0}

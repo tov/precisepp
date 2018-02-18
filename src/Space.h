@@ -55,7 +55,7 @@ class Space
     virtual size_t used_slots() const         =0;
 
 protected:
-    virtual ~Space() { }
+    virtual ~Space() = default;
 };
 
 } // end namespace internal
