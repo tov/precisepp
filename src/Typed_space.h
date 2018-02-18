@@ -271,8 +271,8 @@ public:
     }
 };
 
-// Allocates an object of type `T` in the default space, given parameters to
-// forward to its constructor.
+// Allocates an object of type `T` given a space to allocate in and parameters
+// to forward to its constructor.
 template <typename T,
           typename Allocator  = std::allocator<Traced<T>>,
           typename... Args>
@@ -282,8 +282,8 @@ make_traced_in(Typed_space<T, Allocator>& space, Args&&... args)
     return space.allocate(std::forward<Args>(args)...);
 }
 
-// Allocates an object of type `T` given a space to allocate in and parameters
-// to forward to its constructor.
+// Allocates an object of type `T` in the default space, given parameters to
+// forward to its constructor.
 template <typename T,
           typename Allocator  = std::allocator<Traced<T>>,
           typename... Args>
