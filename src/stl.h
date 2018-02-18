@@ -26,10 +26,10 @@ namespace gc {
 // Some STL objects that don't contain pointers
 //
 
-DEFINE_TRACEABLE_UNTRACED(std::string);
+DEFINE_TRACEABLE_UNTRACED_REF(std::string);
 
 template <size_t size>
-DEFINE_TRACEABLE_UNTRACED_T(std::bitset<size>);
+DEFINE_TRACEABLE_UNTRACED_REF_T(std::bitset<size>);
 
 //
 // Smart pointers
@@ -74,9 +74,9 @@ DEFINE_TRACEABLE(std::weak_ptr<T>)
 DEFINE_TRACEABLE_CONTAINER(std::deque);
 DEFINE_TRACEABLE_CONTAINER(std::forward_list);
 DEFINE_TRACEABLE_CONTAINER(std::list);
-DEFINE_TRACEABLE_CONTAINER(std::map);
+DEFINE_TRACEABLE_CONTAINER2(std::map);
 DEFINE_TRACEABLE_CONTAINER(std::set);
-DEFINE_TRACEABLE_CONTAINER(std::unordered_map);
+DEFINE_TRACEABLE_CONTAINER2(std::unordered_map);
 DEFINE_TRACEABLE_CONTAINER(std::unordered_set);
 DEFINE_TRACEABLE_CONTAINER(std::vector);
 
@@ -90,7 +90,7 @@ DEFINE_TRACEABLE(std::array<E, N>)
     CONTAINS_POINTERS_IF(::gc::contains_pointers<E>);
     TO_TRACE(const std::array<E, N>& a)
     {
-        if (contains_pointers)
+        if (Traceable::contains_pointers_v)
             for (size_t i = 0; i < N; ++i)
                 TRACE(a[i]);
     }
