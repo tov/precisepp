@@ -15,17 +15,27 @@ void collect()
     std::cerr << ", L = " << space.used_slots() << "\n\n";
 }
 
+list<int> make_list(int size) {
+    list<int> result;
+    while (size--) {
+        result = cons(size, result);
+    }
+    return result;
+}
+
+list<int> make_loop(int size) {
+    list<int> result = make_list(size);
+    concat<int>(result, result);
+    return result;
+}
 
 int main()
 {
-    list<int> c = nullptr;
+    collect();
 
-    for (int i = 0; i < 165508; ++i) {
-        std::cerr << i << std::endl;
-        c = cons((int) i, c);
+    for (int i = 0; i < 10; ++i) {
+        make_loop(20'000);
     }
 
-    c = cons(0, c);
-
-    // collect();
+    collect();
 }
