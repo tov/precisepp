@@ -4,6 +4,20 @@ project(precisepp CXX)
 include_directories(.)
 
 set(GC_HEADERS
+        precisepp/stl/array.h
+        precisepp/stl/bitset.h
+        precisepp/stl/deque.h
+        precisepp/stl/forward_list.h
+        precisepp/stl/list.h
+        precisepp/stl/map.h
+        precisepp/stl/memory.h
+        precisepp/stl/set.h
+        precisepp/stl/string.h
+        precisepp/stl/tuple.h
+        precisepp/stl/unordered_map.h
+        precisepp/stl/unordered_set.h
+        precisepp/stl/utility.h
+        precisepp/stl/vector.h
         precisepp/Typed_space.h
         precisepp/Space.h
         precisepp/Collector.h
