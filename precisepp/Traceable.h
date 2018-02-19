@@ -19,7 +19,7 @@ namespace internal
 template<typename T, typename F>
 void trace(T&& object, F tracer)
 {
-    Traceable<std::remove_cv_t<std::remove_reference_t<T>>>
+    ::gc::Traceable<std::remove_cv_t<std::remove_reference_t<T>>>
         ::template trace<F>(std::forward<T>(object), tracer);
 };
 
@@ -37,7 +37,7 @@ struct contains_pointers;
 template <typename E, typename... Es>
 struct contains_pointers<E, Es...>
 {
-    static constexpr bool value = ::gc::Traceable<E>::contains_pointers
+    static constexpr bool value = ::gc::Traceable<E>::contains_pointers_v
                                   || contains_pointers<Es...>::value;
 };
 
@@ -118,7 +118,7 @@ DEFINE_TRACEABLE_UNTRACED_VALUE(long double);
         }\
     }
 
-#define DEFINE_TRACEABLE_CONTAINER2(C) \
+
     template <typename E1, typename E2, typename... Rest> \
     DEFINE_TRACEABLE(C<E1, E2, Rest...>)\
     {\
