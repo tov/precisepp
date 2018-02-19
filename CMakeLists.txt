@@ -20,13 +20,14 @@ set(GC_LIB
         src/logging.cpp
         ${GC_HEADERS})
 
-set(SOURCE_FILES
-        test/main.cpp
-        test/linked_list.h
-        ${GC_LIB})
+add_library(precisepp ${GC_LIB})
 
-add_executable(precisepp ${SOURCE_FILES})
 set_property(TARGET precisepp PROPERTY CXX_STANDARD 14)
 set_property(TARGET precisepp PROPERTY CXX_STANDARD_REQUIRED On)
 
+add_executable(precisepp-test test/main.cpp test/linked_list.h)
+target_link_libraries(precisepp-test precisepp)
+
+set_property(TARGET precisepp-test PROPERTY CXX_STANDARD 14)
+set_property(TARGET precisepp-test PROPERTY CXX_STANDARD_REQUIRED On)
 
