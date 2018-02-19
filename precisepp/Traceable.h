@@ -13,7 +13,7 @@ namespace gc
 template<typename T>
 class Traceable;
 
-namespace internal
+namespace detail
 {
 
 template<typename T, typename F>
@@ -23,12 +23,12 @@ void trace(T&& object, F tracer)
         ::template trace<F>(std::forward<T>(object), tracer);
 };
 
-} // end namespace internal
+} // end namespace detail
 
 #define CONTAINS_POINTERS_IF(...) \
     static constexpr bool contains_pointers_v = __VA_ARGS__
 
-namespace internal
+namespace detail
 {
 
 template <typename... Es>
@@ -47,22 +47,22 @@ struct contains_pointers<>
     static constexpr bool value = false;
 };
 
-} // end namespace internal
+} // end namespace detail
 
 template <typename... Es>
-constexpr bool contains_pointers = internal::contains_pointers<Es...>::value;
+constexpr bool contains_pointers = detail::contains_pointers<Es...>::value;
 
 #define DEFINE_TRACEABLE(...) \
     class ::gc::Traceable<__VA_ARGS__>
 
 #define TO_TRACE(...) \
     template <typename S__, typename F__>\
-    friend void ::gc::internal::trace(S__&&, F__);\
+    friend void ::gc::detail::trace(S__&&, F__);\
     template <typename tracer_t>\
     static void trace(__VA_ARGS__, tracer_t tracer)
 
 #define TRACE(...) \
-    ::gc::internal::trace(__VA_ARGS__, tracer)
+    ::gc::detail::trace(__VA_ARGS__, tracer)
 
 #define DEFINE_TRACEABLE_UNTRACED_VALUE_T(...) \
     DEFINE_TRACEABLE(__VA_ARGS__) \
@@ -118,7 +118,7 @@ DEFINE_TRACEABLE_UNTRACED_VALUE(long double);
         }\
     }
 
-
+#define DEFINE_TRACEABLE_CONTAINER2(C) \
     template <typename E1, typename E2, typename... Rest> \
     DEFINE_TRACEABLE(C<E1, E2, Rest...>)\
     {\

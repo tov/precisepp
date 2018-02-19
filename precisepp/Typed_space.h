@@ -22,7 +22,7 @@ static constexpr size_t initial_page_size = 1024;
 static constexpr double max_live_ratio    = 0.75;
 
 template <typename T, typename Allocator>
-class Typed_space : private internal::Space
+class Typed_space : private detail::Space
 {
 public:
     // Returns the singleton instance for allocating objects of type `T`.
@@ -176,7 +176,7 @@ private:
         log(debug4) << "mark_recursively_(" << ptr << ")";
         if (ptr != nullptr && !ptr->mark_) {
             ptr->mark_ = true;
-            ::gc::internal::trace(ptr->object_(), [](auto sub_ptr) {
+            ::gc::detail::trace(ptr->object_(), [](auto sub_ptr) {
                 mark_recursively_(sub_ptr);
             });
         }
@@ -220,7 +220,7 @@ private:
     void find_roots() override
     {
         for_heap_([](ptr_t ptr) {
-            ::gc::internal::trace(ptr->object_(), [](auto sub_ptr) {
+            ::gc::detail::trace(ptr->object_(), [](auto sub_ptr) {
                 if (sub_ptr != nullptr)
                     --sub_ptr->root_count_();
             });

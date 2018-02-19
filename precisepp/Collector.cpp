@@ -7,7 +7,7 @@
 namespace gc
 {
 
-using namespace internal;
+using namespace detail;
 
 Collector::Collector() = default;
 

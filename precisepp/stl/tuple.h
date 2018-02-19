@@ -4,7 +4,7 @@
 #include <tuple>
 
 namespace gc {
-namespace internal {
+namespace detail {
 
 template<size_t i, typename T>
 class TupleCountDown_
@@ -38,7 +38,7 @@ template<typename... E>
 DEFINE_TRACEABLE(std::tuple<E...>)
 {
     using T     = std::tuple<E...>;
-    using Start = internal::TupleCountDown_<std::tuple_size<T>::value, T>;
+    using Start = detail::TupleCountDown_<std::tuple_size<T>::value, T>;
 
     CONTAINS_POINTERS_IF(::gc::contains_pointers<E...>);
 

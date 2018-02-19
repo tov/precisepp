@@ -19,11 +19,11 @@ public:
     void collect();
 
 private:
-    std::vector<internal::Space*> spaces_;
+    std::vector<detail::Space*> spaces_;
 
     Collector();
 
-    void register_space(internal::Space&);
+    void register_space(detail::Space&);
 
     template <typename F>
     void for_spaces_(F);
@@ -35,7 +35,7 @@ private:
 template <typename F>
 void Collector::for_spaces_(F f)
 {
-    for (internal::Space* space : spaces_)
+    for (detail::Space* space : spaces_)
         f(space);
 }
 

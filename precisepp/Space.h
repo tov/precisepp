@@ -13,7 +13,7 @@ namespace gc
 
 class Collector;
 
-namespace internal
+namespace detail
 {
 
 class Space
