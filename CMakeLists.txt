@@ -1,23 +1,23 @@
 cmake_minimum_required(VERSION 3.3)
 project(precisepp CXX)
 
-include_directories(src)
+include_directories(.)
 
 set(GC_HEADERS
-        src/Typed_space.h
-        src/Space.h
-        src/Collector.h
-        src/forward.h
-        src/gc.h
-        src/logger.h
-        src/stl.h
-        src/Traceable.h
-        src/Traced.h
-        src/traced_ptr.h)
+        precisepp/Typed_space.h
+        precisepp/Space.h
+        precisepp/Collector.h
+        precisepp/forward.h
+        precisepp/gc.h
+        precisepp/logger.h
+        precisepp/stl.h
+        precisepp/Traceable.h
+        precisepp/Traced.h
+        precisepp/traced_ptr.h)
 
 set(GC_LIB
-        src/Collector.cpp
-        src/logging.cpp
+        precisepp/Collector.cpp
+        precisepp/logging.cpp
         ${GC_HEADERS})
 
 add_library(precisepp ${GC_LIB})

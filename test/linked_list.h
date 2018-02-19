@@ -1,29 +1,18 @@
 #pragma once
 
-#include "gc.h"
+#include "precisepp/gc.h"
 #include <utility>
 
 template <typename T>
-class node
+struct node
 {
 public:
-    using link_t = gc::traced_ptr<node<T>>;
+    using link_t = gc::traced_ptr<node>;
 
-    node(T first, link_t rest)
-            : first_{first}, rest_{rest}
-    { }
+    node(T f, link_t r) : first{f}, rest{r} { }
 
-    const T& first() const { return first_; }
-    T& first() { return first_; }
-
-    const link_t& rest() const { return rest_; }
-    link_t& rest() { return rest_; }
-
-private:
-    T first_;
-    link_t rest_;
-
-    friend class gc::Traceable<node<T>>;
+    T first;
+    link_t rest;
 };
 
 template <typename T>
@@ -31,8 +20,8 @@ DEFINE_TRACEABLE(node<T>) {
     CONTAINS_POINTERS_IF(true);
     TO_TRACE(const node<T>& n)
     {
-        TRACE(n.first_);
-        TRACE(n.rest_);
+        TRACE(n.first);
+        TRACE(n.rest);
     }
 };
 
@@ -50,17 +39,17 @@ list<T> append(list<T> before, list<T> after)
 {
     if (!before) return after;
 
-    auto new_node = cons(before->first(), nullptr);
+    auto new_node = cons(before->first, nullptr);
     auto result = new_node;
-    before = before->rest();
+    before = before->rest;
 
     while (before) {
-        new_node->rest() = cons(before->first(), nullptr);
-        new_node = new_node->rest();
-        before = before->rest();
+        new_node->rest = cons(before->first, nullptr);
+        new_node = new_node->rest;
+        before = before->rest;
     }
 
-    new_node->rest() = after;
+    new_node->rest = after;
 
     return result;
 }
@@ -69,6 +58,6 @@ template<typename T>
 void concat(list<T>& before, list<T> after)
 {
     list<T>* place = &before;
-    while (*place) place = &(*place)->rest();
+    while (*place) place = &(*place)->rest;
     *place = after;
 }
