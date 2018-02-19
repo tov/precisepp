@@ -138,11 +138,7 @@ template <typename T1, typename Allocator1,
 bool operator<(const traced_ptr<T1, Allocator1>& a,
                const traced_ptr<T2, Allocator2>& b)
 {
-    // From unique_ptr:
-    using CT = typename
-      std::common_type<typename traced_ptr<T1, Allocator1>::pointer,
-                       typename traced_ptr<T2, Allocator2>::pointer>::type;
-    return std::less<CT>(a.get(), b.get());
+    return a.get() < b.get();
 };
 
 template <typename T1, typename Allocator1,
