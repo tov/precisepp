@@ -125,7 +125,7 @@ DEFINE_TRACEABLE_UNTRACED_VALUE(long double);
         CONTAINS_POINTERS_IF(::gc::contains_pointers<E1, E2>);\
         TO_TRACE(const C<E1, E2, Rest...>& v)\
         {\
-            if (contains_pointers_v)\
+            if (Traceable::contains_pointers_v)\
                 for (const auto& e : v)\
                      TRACE(e);\
         }\
