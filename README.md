@@ -2,7 +2,7 @@
 
 This library provides a new kind of smart pointer, `gc::traced_ptr<T>` which 
 enables memory management by a tracing garbage collector. This does not add 
-tracing gc to exiting programs, just as adding `std::shared_ptr<T>` to the 
+tracing gc to existing programs, just as adding `std::shared_ptr<T>` to the 
 library did not enable reference counting in existing programs. However, it 
 enables garbage collection for new linked data structures that are designed 
 to use it.
@@ -85,3 +85,4 @@ because it includes reference counting as part of its root tracking.
 
 It has some other limitations. Currently it uses the program's control stack 
 for recursive tracing, which means that on long lists it blows the stack.
+
